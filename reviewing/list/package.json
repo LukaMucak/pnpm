@@ -1,9 +1,25 @@
 {
   "name": "@pnpm/list",
-  "version": "9.0.10",
+  "version": "1000.0.16",
   "description": "List installed packages in a symlinked `node_modules`",
+  "keywords": [
+    "pnpm",
+    "pnpm10",
+    "list",
+    "ls"
+  ],
+  "license": "MIT",
+  "funding": "https://opencollective.com/pnpm",
+  "repository": "https://github.com/pnpm/pnpm/blob/main/reviewing/list",
+  "homepage": "https://github.com/pnpm/pnpm/blob/main/reviewing/list#readme",
+  "bugs": {
+    "url": "https://github.com/pnpm/pnpm/issues"
+  },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": "./lib/index.js"
+  },
   "files": [
     "lib",
     "!*.map"
@@ -18,44 +34,28 @@
     "test": "pnpm run compile && pnpm run _test",
     "compile": "tsc --build && pnpm run lint --fix"
   },
-  "repository": "https://github.com/pnpm/pnpm/blob/main/reviewing/list",
-  "keywords": [
-    "pnpm8",
-    "pnpm",
-    "list",
-    "ls"
-  ],
-  "engines": {
-    "node": ">=16.14"
-  },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/pnpm/pnpm/issues"
-  },
-  "homepage": "https://github.com/pnpm/pnpm/blob/main/reviewing/list#readme",
   "dependencies": {
-    "@pnpm/matcher": "workspace:*",
-    "@pnpm/npm-package-arg": "^1.0.0",
+    "@pnpm/crypto.polyfill": "workspace:*",
     "@pnpm/read-package-json": "workspace:*",
     "@pnpm/read-project-manifest": "workspace:*",
     "@pnpm/reviewing.dependencies-hierarchy": "workspace:*",
     "@pnpm/types": "workspace:*",
-    "archy": "^1.0.0",
-    "chalk": "^4.1.2",
-    "cli-columns": "^4.0.0",
-    "p-limit": "^3.1.0",
-    "ramda": "npm:@pnpm/ramda@0.28.1",
-    "semver": "^7.5.4"
+    "archy": "catalog:",
+    "chalk": "catalog:",
+    "cli-columns": "catalog:",
+    "p-limit": "catalog:",
+    "ramda": "catalog:"
   },
   "devDependencies": {
     "@pnpm/list": "workspace:*",
     "@pnpm/test-fixtures": "workspace:*",
-    "@types/archy": "0.0.32",
-    "@types/ramda": "0.28.20",
-    "@types/semver": "7.3.13"
+    "@types/archy": "catalog:",
+    "@types/ramda": "catalog:"
   },
-  "funding": "https://opencollective.com/pnpm",
-  "exports": {
-    ".": "./lib/index.js"
+  "engines": {
+    "node": ">=18.12"
+  },
+  "jest": {
+    "preset": "@pnpm/jest-config"
   }
 }

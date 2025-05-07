@@ -1,5 +1,385 @@
 # @pnpm/store-controller-types
 
+## 1003.0.0
+
+### Major Changes
+
+- 8a9f3a4: `pref` renamed to `bareSpecifier`.
+- 5b73df1: Renamed `normalizedPref` to `specifiers`.
+
+### Minor Changes
+
+- 9c3dd03: **Added support for installing JSR packages.** You can now install JSR packages using the following syntax:
+
+  ```
+  pnpm add jsr:<pkg_name>
+  ```
+
+  or with a version range:
+
+  ```
+  pnpm add jsr:<pkg_name>@<range>
+  ```
+
+  For example, running:
+
+  ```
+  pnpm add jsr:@foo/bar
+  ```
+
+  will add the following entry to your `package.json`:
+
+  ```json
+  {
+    "dependencies": {
+      "@foo/bar": "jsr:^0.1.2"
+    }
+  }
+  ```
+
+  When publishing, this entry will be transformed into a format compatible with npm, older versions of Yarn, and previous pnpm versions:
+
+  ```json
+  {
+    "dependencies": {
+      "@foo/bar": "npm:@jsr/foo__bar@^0.1.2"
+    }
+  }
+  ```
+
+  Related issue: [#8941](https://github.com/pnpm/pnpm/issues/8941).
+
+  Note: The `@jsr` scope defaults to <https://npm.jsr.io/> if the `@jsr:registry` setting is not defined.
+
+### Patch Changes
+
+- Updated dependencies [8a9f3a4]
+- Updated dependencies [5b73df1]
+- Updated dependencies [9c3dd03]
+- Updated dependencies [5b73df1]
+  - @pnpm/resolver-base@1003.0.0
+  - @pnpm/types@1000.5.0
+  - @pnpm/fetcher-base@1000.0.10
+
+## 1002.0.1
+
+### Patch Changes
+
+- Updated dependencies [81f441c]
+  - @pnpm/resolver-base@1002.0.0
+  - @pnpm/fetcher-base@1000.0.9
+
+## 1002.0.0
+
+### Major Changes
+
+- 72cff38: The resolving function now takes a `registries` object, so it finds the required registry itself instead of receiving it from package requester.
+
+### Patch Changes
+
+- Updated dependencies [750ae7d]
+- Updated dependencies [72cff38]
+  - @pnpm/types@1000.4.0
+  - @pnpm/resolver-base@1001.0.0
+  - @pnpm/fetcher-base@1000.0.8
+
+## 1001.0.5
+
+### Patch Changes
+
+- Updated dependencies [5f7be64]
+- Updated dependencies [5f7be64]
+  - @pnpm/types@1000.3.0
+  - @pnpm/fetcher-base@1000.0.7
+  - @pnpm/resolver-base@1000.2.1
+
+## 1001.0.4
+
+### Patch Changes
+
+- Updated dependencies [3d52365]
+  - @pnpm/resolver-base@1000.2.0
+  - @pnpm/fetcher-base@1000.0.6
+
+## 1001.0.3
+
+### Patch Changes
+
+- Updated dependencies [a5e4965]
+  - @pnpm/types@1000.2.1
+  - @pnpm/fetcher-base@1000.0.5
+  - @pnpm/resolver-base@1000.1.4
+
+## 1001.0.2
+
+### Patch Changes
+
+- Updated dependencies [8fcc221]
+  - @pnpm/types@1000.2.0
+  - @pnpm/fetcher-base@1000.0.4
+  - @pnpm/resolver-base@1000.1.3
+
+## 1001.0.1
+
+### Patch Changes
+
+- Updated dependencies [b562deb]
+  - @pnpm/types@1000.1.1
+  - @pnpm/fetcher-base@1000.0.3
+  - @pnpm/resolver-base@1000.1.2
+
+## 1001.0.0
+
+### Major Changes
+
+- dde650b: `RequestPackageOptions` now takes a union type for the `update` option, instead of a separate `updateToLatest` option.
+
+  This avoids pitfalls around specifying only `update` or, specifying `update: false`, but still providing `updateToLatest: true`.
+
+## 1000.1.1
+
+### Patch Changes
+
+- Updated dependencies [9591a18]
+  - @pnpm/types@1000.1.0
+  - @pnpm/fetcher-base@1000.0.2
+  - @pnpm/resolver-base@1000.1.1
+
+## 1000.1.0
+
+### Minor Changes
+
+- 6483b64: A new setting, `inject-workspace-packages`, has been added to allow hard-linking all local workspace dependencies instead of symlinking them. Previously, this behavior was achievable via the [`dependenciesMeta[].injected`](https://pnpm.io/package_json#dependenciesmetainjected) setting, which remains supported [#8836](https://github.com/pnpm/pnpm/pull/8836).
+
+### Patch Changes
+
+- Updated dependencies [6483b64]
+  - @pnpm/resolver-base@1000.1.0
+  - @pnpm/fetcher-base@1000.0.1
+
+## 18.1.6
+
+### Patch Changes
+
+- Updated dependencies [d500d9f]
+  - @pnpm/types@12.2.0
+  - @pnpm/fetcher-base@16.0.7
+  - @pnpm/resolver-base@13.0.4
+
+## 18.1.5
+
+### Patch Changes
+
+- Updated dependencies [7ee59a1]
+  - @pnpm/types@12.1.0
+  - @pnpm/fetcher-base@16.0.6
+  - @pnpm/resolver-base@13.0.3
+
+## 18.1.4
+
+### Patch Changes
+
+- Updated dependencies [cb006df]
+  - @pnpm/types@12.0.0
+  - @pnpm/fetcher-base@16.0.5
+  - @pnpm/resolver-base@13.0.2
+
+## 18.1.3
+
+### Patch Changes
+
+- Updated dependencies [0ef168b]
+  - @pnpm/types@11.1.0
+  - @pnpm/fetcher-base@16.0.4
+  - @pnpm/resolver-base@13.0.1
+
+## 18.1.2
+
+### Patch Changes
+
+- Updated dependencies [dd00eeb]
+- Updated dependencies
+  - @pnpm/resolver-base@13.0.0
+  - @pnpm/types@11.0.0
+  - @pnpm/fetcher-base@16.0.3
+
+## 18.1.1
+
+### Patch Changes
+
+- Updated dependencies [13e55b2]
+  - @pnpm/types@10.1.1
+  - @pnpm/fetcher-base@16.0.2
+  - @pnpm/resolver-base@12.0.2
+
+## 18.1.0
+
+### Minor Changes
+
+- 0c08e1c: Added a new function for clearing resolution cache.
+
+## 18.0.1
+
+### Patch Changes
+
+- Updated dependencies [45f4262]
+  - @pnpm/types@10.1.0
+  - @pnpm/fetcher-base@16.0.1
+  - @pnpm/resolver-base@12.0.1
+
+## 18.0.0
+
+### Major Changes
+
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+
+### Patch Changes
+
+- Updated dependencies [7733f3a]
+- Updated dependencies [43cdd87]
+- Updated dependencies [b13d2dc]
+- Updated dependencies [730929e]
+  - @pnpm/types@10.0.0
+  - @pnpm/resolver-base@12.0.0
+  - @pnpm/fetcher-base@16.0.0
+
+## 17.2.0
+
+### Minor Changes
+
+- 31054a63e: Running `pnpm update -r --latest` will no longer downgrade prerelease dependencies [#7436](https://github.com/pnpm/pnpm/issues/7436).
+
+### Patch Changes
+
+- Updated dependencies [31054a63e]
+  - @pnpm/resolver-base@11.1.0
+  - @pnpm/fetcher-base@15.0.7
+
+## 17.1.4
+
+### Patch Changes
+
+- Updated dependencies [4d34684f1]
+  - @pnpm/types@9.4.2
+  - @pnpm/fetcher-base@15.0.6
+  - @pnpm/resolver-base@11.0.2
+
+## 17.1.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @pnpm/types@9.4.1
+  - @pnpm/fetcher-base@15.0.5
+  - @pnpm/resolver-base@11.0.1
+
+## 17.1.2
+
+### Patch Changes
+
+- 291607c5a: When using `pnpm store prune --force` alien directories are removed from the store [#7272](https://github.com/pnpm/pnpm/pull/7272).
+
+## 17.1.1
+
+### Patch Changes
+
+- 7ea45afbe: If a package's tarball cannot be fetched, print the dependency chain that leads to the failed package [#7265](https://github.com/pnpm/pnpm/pull/7265).
+- Updated dependencies [4c2450208]
+  - @pnpm/resolver-base@11.0.0
+  - @pnpm/fetcher-base@15.0.4
+
+## 17.1.0
+
+### Minor Changes
+
+- 43ce9e4a6: Support for multiple architectures when installing dependencies [#5965](https://github.com/pnpm/pnpm/issues/5965).
+
+  You can now specify architectures for which you'd like to install optional dependencies, even if they don't match the architecture of the system running the install. Use the `supportedArchitectures` field in `package.json` to define your preferences.
+
+  For example, the following configuration tells pnpm to install optional dependencies for Windows x64:
+
+  ```json
+  {
+    "pnpm": {
+      "supportedArchitectures": {
+        "os": ["win32"],
+        "cpu": ["x64"]
+      }
+    }
+  }
+  ```
+
+  Whereas this configuration will have pnpm install optional dependencies for Windows, macOS, and the architecture of the system currently running the install. It includes artifacts for both x64 and arm64 CPUs:
+
+  ```json
+  {
+    "pnpm": {
+      "supportedArchitectures": {
+        "os": ["win32", "darwin", "current"],
+        "cpu": ["x64", "arm64"]
+      }
+    }
+  }
+  ```
+
+  Additionally, `supportedArchitectures` also supports specifying the `libc` of the system.
+
+### Patch Changes
+
+- Updated dependencies [43ce9e4a6]
+  - @pnpm/types@9.4.0
+  - @pnpm/fetcher-base@15.0.3
+  - @pnpm/resolver-base@10.0.4
+
+## 17.0.1
+
+### Patch Changes
+
+- Updated dependencies [d774a3196]
+  - @pnpm/types@9.3.0
+  - @pnpm/fetcher-base@15.0.2
+  - @pnpm/resolver-base@10.0.3
+
+## 17.0.0
+
+### Major Changes
+
+- 9caa33d53: Remove `disableRelinkFromStore` and `relinkLocalDirDeps`. Replace them with `disableRelinkLocalDirDeps`.
+- 9caa33d53: `fromStore` replaced with `resolvedFrom`.
+
+### Patch Changes
+
+- @pnpm/fetcher-base@15.0.1
+
+## 16.1.0
+
+### Minor Changes
+
+- 03cdccc6e: New option added: disableRelinkFromStore.
+
+### Patch Changes
+
+- @pnpm/fetcher-base@15.0.1
+
+## 16.0.1
+
+### Patch Changes
+
+- Updated dependencies [4a1a9431d]
+  - @pnpm/fetcher-base@15.0.1
+
+## 16.0.0
+
+### Major Changes
+
+- 494f87544: Breaking changes to the API.
+
+### Patch Changes
+
+- Updated dependencies [70b2830ac]
+- Updated dependencies [083bbf590]
+  - @pnpm/fetcher-base@15.0.0
+
 ## 15.0.2
 
 ### Patch Changes

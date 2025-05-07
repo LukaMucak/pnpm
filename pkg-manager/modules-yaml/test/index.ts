@@ -2,7 +2,7 @@
 import fs from 'fs'
 import path from 'path'
 import { readModulesManifest, writeModulesManifest } from '@pnpm/modules-yaml'
-import readYamlFile from 'read-yaml-file'
+import { sync as readYamlFile } from 'read-yaml-file'
 import isWindows from 'is-windows'
 import tempy from 'tempy'
 
@@ -15,6 +15,7 @@ test('writeModulesManifest() and readModulesManifest()', async () => {
       devDependencies: true,
       optionalDependencies: true,
     },
+    ignoredBuilds: [],
     layoutVersion: 1,
     packageManager: 'pnpm@2',
     pendingBuilds: [],
@@ -27,11 +28,12 @@ test('writeModulesManifest() and readModulesManifest()', async () => {
     skipped: [],
     storeDir: '/.pnpm-store',
     virtualStoreDir: path.join(modulesDir, '.pnpm'),
+    virtualStoreDirMaxLength: 120,
   }
   await writeModulesManifest(modulesDir, modulesYaml)
   expect(await readModulesManifest(modulesDir)).toEqual(modulesYaml)
 
-  const raw = await readYamlFile<any>(path.join(modulesDir, '.modules.yaml')) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const raw = readYamlFile<any>(path.join(modulesDir, '.modules.yaml')) // eslint-disable-line @typescript-eslint/no-explicit-any
   expect(raw.virtualStoreDir).toBeDefined()
   expect(path.isAbsolute(raw.virtualStoreDir)).toEqual(isWindows())
 })
@@ -71,6 +73,7 @@ test('readModulesManifest() should not create a node_modules directory if it doe
       devDependencies: true,
       optionalDependencies: true,
     },
+    ignoredBuilds: [],
     layoutVersion: 1,
     packageManager: 'pnpm@2',
     pendingBuilds: [],
@@ -83,6 +86,7 @@ test('readModulesManifest() should not create a node_modules directory if it doe
     skipped: [],
     storeDir: '/.pnpm-store',
     virtualStoreDir: path.join(modulesDir, '.pnpm'),
+    virtualStoreDirMaxLength: 120,
   }
   await writeModulesManifest(modulesDir, modulesYaml)
   expect(fs.existsSync(modulesDir)).toBeFalsy()
@@ -97,6 +101,7 @@ test('readModulesManifest() should create a node_modules directory if makeModule
       devDependencies: true,
       optionalDependencies: true,
     },
+    ignoredBuilds: [],
     layoutVersion: 1,
     packageManager: 'pnpm@2',
     pendingBuilds: [],
@@ -109,7 +114,13 @@ test('readModulesManifest() should create a node_modules directory if makeModule
     skipped: [],
     storeDir: '/.pnpm-store',
     virtualStoreDir: path.join(modulesDir, '.pnpm'),
+    virtualStoreDirMaxLength: 120,
   }
   await writeModulesManifest(modulesDir, modulesYaml, { makeModulesDir: true })
   expect(await readModulesManifest(modulesDir)).toEqual(modulesYaml)
+})
+
+test('readModulesManifest does not fail on empty file', async () => {
+  const modulesYaml = await readModulesManifest(path.join(__dirname, 'fixtures/empty-modules-yaml'))
+  expect(modulesYaml).toBeUndefined()
 })

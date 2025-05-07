@@ -1,4 +1,5 @@
 import { type ResolveFunction } from '@pnpm/client'
+import { type PkgResolutionId } from '@pnpm/resolver-base'
 import { getManifest } from '../lib/createManifestGetter'
 
 test('getManifest()', async () => {
@@ -6,16 +7,11 @@ test('getManifest()', async () => {
     dir: '',
     lockfileDir: '',
     rawConfig: {},
-    registries: {
-      '@scope': 'https://pnpm.io/',
-      default: 'https://registry.npmjs.org/',
-    },
   }
 
   const resolve: ResolveFunction = async function (wantedPackage, opts) {
-    expect(opts.registry).toEqual('https://registry.npmjs.org/')
     return {
-      id: 'foo/1.0.0',
+      id: 'foo/1.0.0' as PkgResolutionId,
       latest: '1.0.0',
       manifest: {
         name: 'foo',
@@ -34,9 +30,8 @@ test('getManifest()', async () => {
   })
 
   const resolve2: ResolveFunction = async function (wantedPackage, opts) {
-    expect(opts.registry).toEqual('https://pnpm.io/')
     return {
-      id: 'foo/2.0.0',
+      id: 'foo/2.0.0' as PkgResolutionId,
       latest: '2.0.0',
       manifest: {
         name: 'foo',

@@ -1,4 +1,11 @@
-import { type DependencyManifest } from '@pnpm/types'
+import {
+  type ProjectRootDir,
+  type DependencyManifest,
+  type PkgResolutionId,
+  type PinnedVersion,
+} from '@pnpm/types'
+
+export { type PkgResolutionId }
 
 /**
  * tarball hosted remotely
@@ -7,10 +14,7 @@ export interface TarballResolution {
   type?: undefined
   tarball: string
   integrity?: string
-  // needed in some cases to get the auth token
-  // sometimes the tarball URL is under a different path
-  // and the auth token is specified for the registry only
-  registry?: string
+  path?: string
 }
 
 /**
@@ -24,6 +28,7 @@ export interface DirectoryResolution {
 export interface GitResolution {
   commit: string
   repo: string
+  path?: string
   type: 'git'
 }
 
@@ -34,23 +39,36 @@ export type Resolution =
   ({ type: string } & object)
 
 export interface ResolveResult {
-  id: string
+  id: PkgResolutionId
   latest?: string
   publishedAt?: string
   manifest?: DependencyManifest
-  normalizedPref?: string // is null for npm-hosted dependencies
   resolution: Resolution
-  resolvedVia: 'npm-registry' | 'git-repository' | 'local-filesystem' | 'url' | string
+  resolvedVia: 'npm-registry' | 'git-repository' | 'local-filesystem' | 'workspace' | 'url' | string
+  normalizedBareSpecifier?: string
+  alias?: string
 }
 
-export interface WorkspacePackages {
-  [name: string]: {
-    [version: string]: {
-      dir: string
-      manifest: DependencyManifest
-    }
-  }
+/**
+ * A dependency on a workspace package.
+ */
+export interface WorkspaceResolveResult extends ResolveResult {
+  /**
+   * 'workspace' will be returned for workspace: protocol dependencies or a
+   * package in the workspace that matches the wanted dependency's name and
+   * version range.
+   */
+  resolvedVia: 'workspace'
 }
+
+export interface WorkspacePackage {
+  rootDir: ProjectRootDir
+  manifest: DependencyManifest
+}
+
+export type WorkspacePackagesByVersion = Map<string, WorkspacePackage>
+
+export type WorkspacePackages = Map<string, WorkspacePackagesByVersion>
 
 // This weight is set for selectors that are used on direct dependencies.
 // It is important to give a bigger weight to direct dependencies.
@@ -80,18 +98,22 @@ export interface ResolveOptions {
   lockfileDir: string
   preferredVersions: PreferredVersions
   preferWorkspacePackages?: boolean
-  registry: string
   workspacePackages?: WorkspacePackages
+  update?: false | 'compatible' | 'latest'
+  injectWorkspacePackages?: boolean
+  calcSpecifier?: boolean
+  pinnedVersion?: PinnedVersion
 }
 
 export type WantedDependency = {
   injected?: boolean
+  prevSpecifier?: string
 } & ({
   alias?: string
-  pref: string
+  bareSpecifier: string
 } | {
   alias: string
-  pref?: string
+  bareSpecifier?: string
 })
 
 export type ResolveFunction = (wantedDependency: WantedDependency, opts: ResolveOptions) => Promise<ResolveResult>

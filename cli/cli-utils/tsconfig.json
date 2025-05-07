@@ -10,13 +10,25 @@
   ],
   "references": [
     {
+      "path": "../../__utils__/prepare"
+    },
+    {
       "path": "../../config/config"
+    },
+    {
+      "path": "../../config/deps-installer"
     },
     {
       "path": "../../config/package-is-installable"
     },
     {
+      "path": "../../hooks/pnpmfile"
+    },
+    {
       "path": "../../packages/error"
+    },
+    {
+      "path": "../../packages/logger"
     },
     {
       "path": "../../packages/types"
@@ -28,11 +40,13 @@
       "path": "../../pkg-manifest/read-project-manifest"
     },
     {
+      "path": "../../store/store-connection-manager"
+    },
+    {
       "path": "../cli-meta"
     },
     {
       "path": "../default-reporter"
     }
-  ],
-  "composite": true
+  ]
 }

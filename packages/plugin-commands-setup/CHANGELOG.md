@@ -1,5 +1,455 @@
 # @pnpm/plugin-commands-setup
 
+## 1000.0.23
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.1.3
+
+## 1000.0.22
+
+### Patch Changes
+
+- Updated dependencies [8a9f3a4]
+  - @pnpm/logger@1001.0.0
+  - @pnpm/cli-utils@1000.1.2
+  - @pnpm/cli-meta@1000.0.7
+
+## 1000.0.21
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.1.1
+
+## 1000.0.20
+
+### Patch Changes
+
+- Updated dependencies [1413c25]
+  - @pnpm/cli-utils@1000.1.0
+  - @pnpm/cli-meta@1000.0.6
+
+## 1000.0.19
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.19
+
+## 1000.0.18
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.18
+- @pnpm/cli-meta@1000.0.5
+
+## 1000.0.17
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.17
+
+## 1000.0.16
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.16
+
+## 1000.0.15
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.15
+
+## 1000.0.14
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.14
+
+## 1000.0.13
+
+### Patch Changes
+
+- @pnpm/cli-meta@1000.0.4
+- @pnpm/cli-utils@1000.0.13
+
+## 1000.0.12
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.12
+
+## 1000.0.11
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.11
+- @pnpm/cli-meta@1000.0.3
+
+## 1000.0.10
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.10
+
+## 1000.0.9
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.9
+
+## 1000.0.8
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.8
+
+## 1000.0.7
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.7
+
+## 1000.0.6
+
+### Patch Changes
+
+- @pnpm/cli-meta@1000.0.2
+- @pnpm/cli-utils@1000.0.6
+
+## 1000.0.5
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.5
+
+## 1000.0.4
+
+### Patch Changes
+
+- @pnpm/cli-meta@1000.0.1
+- @pnpm/cli-utils@1000.0.4
+
+## 1000.0.3
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.3
+
+## 1000.0.2
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.2
+
+## 1000.0.1
+
+### Patch Changes
+
+- @pnpm/cli-utils@1000.0.1
+
+## 5.1.14
+
+### Patch Changes
+
+- c64d36c: `pnpm setup` should remove the CLI from the target location before moving the new binary [#8173](https://github.com/pnpm/pnpm/issues/8173).
+  - @pnpm/cli-utils@4.0.8
+
+## 5.1.13
+
+### Patch Changes
+
+- @pnpm/cli-utils@4.0.7
+
+## 5.1.12
+
+### Patch Changes
+
+- c9ea43c: The pnpx command should work correctly on Windows, when pnpm is installed via the standalone installation script [#8608](https://github.com/pnpm/pnpm/pull/8608).
+
+## 5.1.11
+
+### Patch Changes
+
+- @pnpm/cli-utils@4.0.6
+
+## 5.1.10
+
+### Patch Changes
+
+- @pnpm/cli-meta@6.2.2
+- @pnpm/cli-utils@4.0.5
+
+## 5.1.9
+
+### Patch Changes
+
+- @pnpm/cli-meta@6.2.1
+- @pnpm/cli-utils@4.0.4
+
+## 5.1.8
+
+### Patch Changes
+
+- Updated dependencies [eb8bf2a]
+  - @pnpm/cli-meta@6.2.0
+  - @pnpm/cli-utils@4.0.3
+
+## 5.1.7
+
+### Patch Changes
+
+- 7691658: `pnpm setup` no longer creates Batch/Powershell scripts on Linux and macOS [#8418](https://github.com/pnpm/pnpm/pull/8418).
+  - @pnpm/cli-utils@4.0.2
+
+## 5.1.6
+
+### Patch Changes
+
+- @pnpm/cli-utils@4.0.1
+
+## 5.1.5
+
+### Patch Changes
+
+- Updated dependencies [26b065c]
+  - @pnpm/cli-utils@4.0.0
+
+## 5.1.4
+
+### Patch Changes
+
+- Updated dependencies [64e2e4f]
+- Updated dependencies [98c8bd6]
+- Updated dependencies [e7f6330]
+  - @pnpm/cli-meta@6.1.0
+  - @pnpm/cli-utils@3.1.7
+
+## 5.1.3
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.1.6
+
+## 5.1.2
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.1.5
+
+## 5.1.1
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.1.4
+
+## 5.1.0
+
+### Minor Changes
+
+- 3beb895: Bundled `pnpm setup` now creates `pnpx` script [#8230](https://github.com/pnpm/pnpm/issues/8230).
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.1.3
+
+## 5.0.10
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.1.2
+
+## 5.0.9
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.1.1
+
+## 5.0.8
+
+### Patch Changes
+
+- Updated dependencies [b7ca13f]
+- Updated dependencies [b7ca13f]
+  - @pnpm/cli-utils@3.1.0
+
+## 5.0.7
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.0.7
+
+## 5.0.6
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.0.6
+
+## 5.0.5
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.0.5
+
+## 5.0.4
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.0.4
+
+## 5.0.3
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.0.3
+
+## 5.0.2
+
+### Patch Changes
+
+- Updated dependencies [a80b539]
+  - @pnpm/cli-utils@3.0.2
+
+## 5.0.1
+
+### Patch Changes
+
+- @pnpm/cli-utils@3.0.1
+
+## 5.0.0
+
+### Major Changes
+
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+
+### Patch Changes
+
+- Updated dependencies [43cdd87]
+- Updated dependencies [3477ee5]
+  - @pnpm/cli-utils@3.0.0
+
+## 4.0.34
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.1.9
+
+## 4.0.33
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.1.8
+
+## 4.0.32
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.1.7
+
+## 4.0.31
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.1.6
+
+## 4.0.30
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.1.5
+
+## 4.0.29
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.1.4
+
+## 4.0.28
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.1.3
+
+## 4.0.27
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.1.2
+
+## 4.0.26
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.1.1
+
+## 4.0.25
+
+### Patch Changes
+
+- 34654835d: `pnpm setup` should add a newline at the end of the updated shell config file [#7227](https://github.com/pnpm/pnpm/issues/7227).
+- Updated dependencies [43ce9e4a6]
+  - @pnpm/cli-utils@2.1.0
+
+## 4.0.24
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.0.24
+
+## 4.0.23
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.0.23
+
+## 4.0.22
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.0.22
+
+## 4.0.21
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.0.21
+
+## 4.0.20
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.0.20
+
+## 4.0.19
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.0.19
+
+## 4.0.18
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.0.18
+
+## 4.0.17
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.0.17
+
+## 4.0.16
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.0.16
+
+## 4.0.15
+
+### Patch Changes
+
+- @pnpm/cli-utils@2.0.15
+
 ## 4.0.14
 
 ### Patch Changes

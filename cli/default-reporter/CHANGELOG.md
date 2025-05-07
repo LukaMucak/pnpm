@@ -1,5 +1,655 @@
 # @pnpm/default-reporter
 
+## 1001.4.3
+
+### Patch Changes
+
+- @pnpm/config@1003.0.1
+
+## 1001.4.2
+
+### Patch Changes
+
+- Updated dependencies [56bb69b]
+- Updated dependencies [8a9f3a4]
+- Updated dependencies [9c3dd03]
+- Updated dependencies [5b73df1]
+  - @pnpm/config@1003.0.0
+  - @pnpm/render-peer-issues@1001.0.0
+  - @pnpm/core-loggers@1001.0.0
+  - @pnpm/logger@1001.0.0
+  - @pnpm/types@1000.5.0
+  - @pnpm/cli-meta@1000.0.7
+
+## 1001.4.1
+
+### Patch Changes
+
+- 43bd37f: Removed bright white highlighting, which didn't look good on some light themes [#9389](https://github.com/pnpm/pnpm/pull/9389).
+  - @pnpm/config@1002.7.2
+
+## 1001.4.0
+
+### Minor Changes
+
+- 750ae7d: Now you can use the `pnpm add` command with the `--config` flag to install new configurational dependencies [#9377](https://github.com/pnpm/pnpm/pull/9377).
+
+### Patch Changes
+
+- Updated dependencies [750ae7d]
+- Updated dependencies [5679712]
+- Updated dependencies [01f2bcf]
+- Updated dependencies [750ae7d]
+  - @pnpm/types@1000.4.0
+  - @pnpm/config@1002.7.1
+  - @pnpm/core-loggers@1000.2.0
+  - @pnpm/cli-meta@1000.0.6
+  - @pnpm/render-peer-issues@1000.0.8
+
+## 1001.3.10
+
+### Patch Changes
+
+- Updated dependencies [e57f1df]
+  - @pnpm/config@1002.7.0
+
+## 1001.3.9
+
+### Patch Changes
+
+- Updated dependencies [9bcca9f]
+- Updated dependencies [5b35dff]
+- Updated dependencies [9bcca9f]
+- Updated dependencies [5f7be64]
+- Updated dependencies [5f7be64]
+  - @pnpm/config@1002.6.0
+  - @pnpm/types@1000.3.0
+  - @pnpm/cli-meta@1000.0.5
+  - @pnpm/core-loggers@1000.1.5
+  - @pnpm/render-peer-issues@1000.0.7
+
+## 1001.3.8
+
+### Patch Changes
+
+- Updated dependencies [936430a]
+  - @pnpm/config@1002.5.4
+
+## 1001.3.7
+
+### Patch Changes
+
+- Updated dependencies [6e4459c]
+  - @pnpm/config@1002.5.3
+
+## 1001.3.6
+
+### Patch Changes
+
+- f8c8e3f: Don't show info output when `--loglevel=error` is used.
+  - @pnpm/config@1002.5.2
+
+## 1001.3.5
+
+### Patch Changes
+
+- 6f56790: When `--loglevel` is set to `error`, don't show installation summary, execution time, and big tarball download progress.
+- Updated dependencies [c3aa4d8]
+  - @pnpm/config@1002.5.1
+
+## 1001.3.4
+
+### Patch Changes
+
+- Updated dependencies [a5e4965]
+- Updated dependencies [d965748]
+  - @pnpm/types@1000.2.1
+  - @pnpm/config@1002.5.0
+  - @pnpm/cli-meta@1000.0.4
+  - @pnpm/core-loggers@1000.1.4
+  - @pnpm/render-peer-issues@1000.0.6
+
+## 1001.3.3
+
+### Patch Changes
+
+- Updated dependencies [1c2eb8c]
+  - @pnpm/config@1002.4.1
+
+## 1001.3.2
+
+### Patch Changes
+
+- 5df8de7: Fix undefined being printed in install errors when a package does not have a version field.
+- Updated dependencies [8fcc221]
+- Updated dependencies [e32b1a2]
+- Updated dependencies [8fcc221]
+  - @pnpm/config@1002.4.0
+  - @pnpm/types@1000.2.0
+  - @pnpm/cli-meta@1000.0.3
+  - @pnpm/core-loggers@1000.1.3
+  - @pnpm/render-peer-issues@1000.0.5
+
+## 1001.3.1
+
+### Patch Changes
+
+- aa29bde: Print pnpm's version after the execution time at the end of the console output.
+- Updated dependencies [fee898f]
+  - @pnpm/config@1002.3.1
+
+## 1001.3.0
+
+### Minor Changes
+
+- 4aa6d45: `pnpm approve-builds --global` works now for allowing dependencies of globally installed packages to run postinstall scripts.
+
+### Patch Changes
+
+- 7b9a9af: Fix instruction for updating pnpm with corepack [#9101](https://github.com/pnpm/pnpm/pull/9101).
+- b60661a: When `strict-dep-builds` is set to `true`, the same warning and error messages should not be output simultaneously [#9078](https://github.com/pnpm/pnpm/pull/9078).
+
+## 1001.2.2
+
+### Patch Changes
+
+- 3717340: Print the warning about blocked installation scripts at the end of the installation output and make it more prominent.
+- Updated dependencies [f6006f2]
+- Updated dependencies [3717340]
+  - @pnpm/config@1002.3.0
+  - @pnpm/render-peer-issues@1000.0.4
+
+## 1001.2.1
+
+### Patch Changes
+
+- @pnpm/config@1002.2.1
+
+## 1001.2.0
+
+### Minor Changes
+
+- 961dc5d: Added a new command for approving dependencies for running scripts during installation: `pnpm approve-builds` [#8963](https://github.com/pnpm/pnpm/pull/8963).
+- 7a9473b: Added a new field "pnpm.ignoredBuiltDependencies" for explicitly listing packages that should not be built. When a package is in the list, pnpm will not print an info message about that package not being built [#8935](https://github.com/pnpm/pnpm/issues/8935).
+
+### Patch Changes
+
+- acdf26d: Replace `strip-ansi` with the built-in `util.stripVTControlCharacters` [#9009](https://github.com/pnpm/pnpm/pull/9009).
+- Updated dependencies [b562deb]
+- Updated dependencies [f3ffaed]
+- Updated dependencies [c96eb2b]
+- Updated dependencies [acdf26d]
+  - @pnpm/types@1000.1.1
+  - @pnpm/config@1002.2.0
+  - @pnpm/render-peer-issues@1000.0.3
+  - @pnpm/dedupe.issues-renderer@1000.0.1
+  - @pnpm/error@1000.0.2
+  - @pnpm/cli-meta@1000.0.2
+  - @pnpm/core-loggers@1000.1.2
+
+## 1001.1.3
+
+### Patch Changes
+
+- @pnpm/config@1002.1.2
+
+## 1001.1.2
+
+### Patch Changes
+
+- Updated dependencies [9591a18]
+- Updated dependencies [1f5169f]
+  - @pnpm/types@1000.1.0
+  - @pnpm/config@1002.1.1
+  - @pnpm/cli-meta@1000.0.1
+  - @pnpm/core-loggers@1000.1.1
+  - @pnpm/render-peer-issues@1000.0.2
+
+## 1001.1.1
+
+### Patch Changes
+
+- Updated dependencies [f90a94b]
+- Updated dependencies [f891288]
+  - @pnpm/config@1002.1.0
+
+## 1001.1.0
+
+### Minor Changes
+
+- 516c4b3: Improve how packages with blocked lifecycle scripts are reported during installation. Always print the list of ignored scripts at the end of the output. Include a hint about how to allow the execution of those packages.
+
+### Patch Changes
+
+- Updated dependencies [516c4b3]
+- Updated dependencies [878ea8c]
+  - @pnpm/core-loggers@1000.1.0
+  - @pnpm/config@1002.0.0
+
+## 1001.0.0
+
+### Major Changes
+
+- ac5b9d8: All dependencies are installed even when the `NODE_ENV` environment variable is set to `production [#8827](https://github.com/pnpm/pnpm/issues/8827).
+
+### Patch Changes
+
+- Updated dependencies [ac5b9d8]
+- Updated dependencies [6483b64]
+  - @pnpm/config@1001.0.0
+  - @pnpm/error@1000.0.1
+  - @pnpm/render-peer-issues@1000.0.1
+
+## 14.0.5
+
+### Patch Changes
+
+- Updated dependencies [477e0c1]
+- Updated dependencies [ee5dde3]
+- Updated dependencies [dfcf034]
+- Updated dependencies [592e2ef]
+- Updated dependencies [19d5b51]
+- Updated dependencies [1dbc56a]
+- Updated dependencies [e9985b6]
+  - @pnpm/config@22.0.0
+  - @pnpm/render-peer-issues@5.0.10
+  - @pnpm/error@6.0.3
+
+## 14.0.4
+
+### Patch Changes
+
+- @pnpm/config@21.8.5
+
+## 14.0.3
+
+### Patch Changes
+
+- Updated dependencies [9ff7724]
+  - @pnpm/render-peer-issues@5.0.9
+  - @pnpm/config@21.8.4
+  - @pnpm/error@6.0.2
+
+## 14.0.2
+
+### Patch Changes
+
+- Updated dependencies [d500d9f]
+  - @pnpm/types@12.2.0
+  - @pnpm/cli-meta@6.2.2
+  - @pnpm/config@21.8.3
+  - @pnpm/core-loggers@10.0.7
+  - @pnpm/render-peer-issues@5.0.8
+
+## 14.0.1
+
+### Patch Changes
+
+- Updated dependencies [7ee59a1]
+  - @pnpm/types@12.1.0
+  - @pnpm/cli-meta@6.2.1
+  - @pnpm/config@21.8.2
+  - @pnpm/core-loggers@10.0.6
+  - @pnpm/render-peer-issues@5.0.7
+
+## 14.0.0
+
+### Major Changes
+
+- eb8bf2a: Added a new command for upgrading pnpm itself when it isn't managed by Corepack: `pnpm self-update`. This command will work, when pnpm was installed via the standalone script from the [pnpm installation page](https://pnpm.io/installation#using-a-standalone-script) [#8424](https://github.com/pnpm/pnpm/pull/8424).
+
+  When executed in a project that has a `packageManager` field in its `package.json` file, pnpm will update its version in the `packageManager` field.
+
+### Patch Changes
+
+- Updated dependencies [eb8bf2a]
+  - @pnpm/cli-meta@6.2.0
+
+## 13.1.13
+
+### Patch Changes
+
+- Updated dependencies [251ab21]
+  - @pnpm/config@21.8.1
+
+## 13.1.12
+
+### Patch Changes
+
+- a64e440: write output to the stdout passed in via the context argument.
+
+## 13.1.11
+
+### Patch Changes
+
+- Updated dependencies [26b065c]
+  - @pnpm/config@21.8.0
+
+## 13.1.10
+
+### Patch Changes
+
+- Updated dependencies [cb006df]
+- Updated dependencies [64e2e4f]
+- Updated dependencies [d20eed3]
+- Updated dependencies [e7f6330]
+  - @pnpm/types@12.0.0
+  - @pnpm/cli-meta@6.1.0
+  - @pnpm/config@21.7.0
+  - @pnpm/core-loggers@10.0.5
+  - @pnpm/render-peer-issues@5.0.6
+
+## 13.1.9
+
+### Patch Changes
+
+- @pnpm/config@21.6.3
+
+## 13.1.8
+
+### Patch Changes
+
+- Updated dependencies [0ef168b]
+  - @pnpm/types@11.1.0
+  - @pnpm/render-peer-issues@5.0.5
+  - @pnpm/config@21.6.2
+  - @pnpm/core-loggers@10.0.4
+
+## 13.1.7
+
+### Patch Changes
+
+- Updated dependencies [afe520d]
+  - @pnpm/config@21.6.1
+
+## 13.1.6
+
+### Patch Changes
+
+- 9bf9f71: When encountering an external dependency using the `catalog:` protocol, a clearer error will be shown. Previously a confusing `ERR_PNPM_SPEC_NOT_SUPPORTED_BY_ANY_RESOLVER` error was thrown. The new error message will explain that the author of the dependency needs to run `pnpm publish` to replace the catalog protocol.
+- Updated dependencies [1b03682]
+- Updated dependencies [dd00eeb]
+- Updated dependencies
+  - @pnpm/config@21.6.0
+  - @pnpm/types@11.0.0
+  - @pnpm/core-loggers@10.0.3
+  - @pnpm/render-peer-issues@5.0.4
+
+## 13.1.5
+
+### Patch Changes
+
+- Updated dependencies [7c6c923]
+- Updated dependencies [7d10394]
+- Updated dependencies [d8eab39]
+- Updated dependencies [13e55b2]
+- Updated dependencies [04b8363]
+  - @pnpm/config@21.5.0
+  - @pnpm/types@10.1.1
+  - @pnpm/core-loggers@10.0.2
+  - @pnpm/render-peer-issues@5.0.3
+
+## 13.1.4
+
+### Patch Changes
+
+- Updated dependencies [47341e5]
+  - @pnpm/config@21.4.0
+
+## 13.1.3
+
+### Patch Changes
+
+- Updated dependencies [b7ca13f]
+  - @pnpm/config@21.3.0
+
+## 13.1.2
+
+### Patch Changes
+
+- @pnpm/config@21.2.3
+
+## 13.1.1
+
+### Patch Changes
+
+- Updated dependencies [45f4262]
+  - @pnpm/types@10.1.0
+  - @pnpm/config@21.2.2
+  - @pnpm/core-loggers@10.0.1
+  - @pnpm/render-peer-issues@5.0.2
+
+## 13.1.0
+
+### Minor Changes
+
+- 524990f: fix(default-reporter): replace deprecated right-pad with String.padEnd
+
+### Patch Changes
+
+- Updated dependencies [a7aef51]
+  - @pnpm/error@6.0.1
+  - @pnpm/config@21.2.1
+  - @pnpm/render-peer-issues@5.0.1
+
+## 13.0.3
+
+### Patch Changes
+
+- 43b6bb7: Print a better error message when `resolution-mode` is set to `time-based` and the registry fails to return the `"time"` field in the package's metadata.
+
+## 13.0.2
+
+### Patch Changes
+
+- Updated dependencies [9719a42]
+  - @pnpm/config@21.2.0
+
+## 13.0.1
+
+### Patch Changes
+
+- Updated dependencies [e0f47f4]
+  - @pnpm/config@21.1.0
+
+## 13.0.0
+
+### Major Changes
+
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+
+### Minor Changes
+
+- aa33269: Peer dependency rules should only affect reporting, not data in the lockfile.
+
+### Patch Changes
+
+- Updated dependencies [7733f3a]
+- Updated dependencies [aa33269]
+- Updated dependencies [3ded840]
+- Updated dependencies [43cdd87]
+- Updated dependencies [2d9e3b8]
+- Updated dependencies [cfa33f1]
+- Updated dependencies [e748162]
+- Updated dependencies [2b89155]
+- Updated dependencies [60839fc]
+- Updated dependencies [730929e]
+- Updated dependencies [98566d9]
+  - @pnpm/types@10.0.0
+  - @pnpm/config@21.0.0
+  - @pnpm/render-peer-issues@5.0.0
+  - @pnpm/error@6.0.0
+  - @pnpm/dedupe.issues-renderer@2.0.0
+  - @pnpm/core-loggers@10.0.0
+  - @pnpm/dedupe.types@2.0.0
+
+## 12.4.13
+
+### Patch Changes
+
+- f12884def: `--aggregate-output` should work on scripts executed from the same project [#7556](https://github.com/pnpm/pnpm/issues/7556).
+  - @pnpm/config@20.4.2
+
+## 12.4.12
+
+### Patch Changes
+
+- Updated dependencies [d9564e354]
+  - @pnpm/config@20.4.1
+
+## 12.4.11
+
+### Patch Changes
+
+- fac2ed424: `pnpm add a-module-already-in-dev-deps` will show a message to notice the user that the package was not moved to "dependencies" [#926](https://github.com/pnpm/pnpm/issues/926) and fix [#7319](https://github.com/pnpm/pnpm/pull/7319).
+- Updated dependencies [c597f72ec]
+  - @pnpm/config@20.4.0
+
+## 12.4.10
+
+### Patch Changes
+
+- Updated dependencies [4e71066dd]
+- Updated dependencies [4d34684f1]
+  - @pnpm/config@20.3.0
+  - @pnpm/types@9.4.2
+  - @pnpm/core-loggers@9.0.6
+  - @pnpm/render-peer-issues@4.0.6
+
+## 12.4.9
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies [672c559e4]
+  - @pnpm/types@9.4.1
+  - @pnpm/config@20.2.0
+  - @pnpm/core-loggers@9.0.5
+  - @pnpm/render-peer-issues@4.0.5
+
+## 12.4.8
+
+### Patch Changes
+
+- 633c0d6f8: Revert warning about type of dependency.
+
+## 12.4.7
+
+### Patch Changes
+
+- 45bdc79b1: `pnpm add a-module-already-in-dev-deps` will show a message to notice the user that the package was not moved to "dependencies" [#926](https://github.com/pnpm/pnpm/issues/926).
+
+## 12.4.6
+
+### Patch Changes
+
+- @pnpm/config@20.1.2
+
+## 12.4.5
+
+### Patch Changes
+
+- @pnpm/config@20.1.1
+
+## 12.4.4
+
+### Patch Changes
+
+- Updated dependencies [43ce9e4a6]
+- Updated dependencies [d6592964f]
+  - @pnpm/types@9.4.0
+  - @pnpm/config@20.1.0
+  - @pnpm/core-loggers@9.0.4
+  - @pnpm/render-peer-issues@4.0.4
+
+## 12.4.3
+
+### Patch Changes
+
+- Updated dependencies [ac5abd3ff]
+- Updated dependencies [b60bb6cbe]
+  - @pnpm/config@20.0.0
+
+## 12.4.2
+
+### Patch Changes
+
+- Updated dependencies [b1dd0ee58]
+  - @pnpm/config@19.2.1
+
+## 12.4.1
+
+### Patch Changes
+
+- Updated dependencies [d774a3196]
+- Updated dependencies [d774a3196]
+- Updated dependencies [832e28826]
+  - @pnpm/config@19.2.0
+  - @pnpm/types@9.3.0
+  - @pnpm/core-loggers@9.0.3
+  - @pnpm/render-peer-issues@4.0.3
+
+## 12.4.0
+
+### Minor Changes
+
+- ee328fd25: Add `--hide-reporter-prefix' option for `run` command to hide project name as prefix for lifecycle log outputs of running scripts [#7061](https://github.com/pnpm/pnpm/issues/7061).
+
+### Patch Changes
+
+- Updated dependencies [ee328fd25]
+  - @pnpm/config@19.1.0
+
+## 12.3.5
+
+### Patch Changes
+
+- 61b9ca189: Don't print out each deprecated subdependency separately with its deprecation message. Just print out a summary of all the deprecated subdependencies [#6707](https://github.com/pnpm/pnpm/issues/6707).
+
+## 12.3.4
+
+### Patch Changes
+
+- @pnpm/config@19.0.3
+
+## 12.3.3
+
+### Patch Changes
+
+- @pnpm/config@19.0.2
+
+## 12.3.2
+
+### Patch Changes
+
+- @pnpm/config@19.0.1
+
+## 12.3.1
+
+### Patch Changes
+
+- cc785f7e1: Fix a bug causing errors to be printed as `Cannot read properties of undefined (reading 'code')` instead of the underlying reason when using the pnpm store server.
+- Updated dependencies [cb8bcc8df]
+  - @pnpm/config@19.0.0
+
+## 12.3.0
+
+### Minor Changes
+
+- bc5d3ceda: Add an option to hide the directory prefix in the progress output.
+- fe322b678: New option added: hideLifecycleOutput.
+
+### Patch Changes
+
+- f432cb11a: Don't prefix install output for the dlx command.
+  - @pnpm/config@18.4.5
+
+## 12.2.9
+
+### Patch Changes
+
+- 8a4dac63c: When showing the download progress of big tarball files, always display the same number of digits after the dot [#6902](https://github.com/pnpm/pnpm/issues/6901).
+
 ## 12.2.8
 
 ### Patch Changes

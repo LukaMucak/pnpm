@@ -1,5 +1,23 @@
 # @pnpm/common-cli-options-help
 
+## 1000.0.1
+
+### Patch Changes
+
+- 7c7f0d6: Fixed a mistake in the description of the `--reporter=silent` option.
+
+## 2.0.0
+
+### Major Changes
+
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+
+## 1.1.0
+
+### Minor Changes
+
+- 4e71066dd: Use `--fail-if-no-match` if you want the CLI fail if no packages were matched by the command [#7403](https://github.com/pnpm/pnpm/issues/7403).
+
 ## 1.0.0
 
 ### Major Changes

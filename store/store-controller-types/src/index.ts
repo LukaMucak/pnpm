@@ -1,21 +1,26 @@
 import {
+  type PkgResolutionId,
   type DirectoryResolution,
   type PreferredVersions,
   type Resolution,
   type WantedDependency,
   type WorkspacePackages,
 } from '@pnpm/resolver-base'
-import type {
-  ImportPackageFunction,
-  PackageFileInfo,
-  PackageFilesResponse,
+import {
+  type ImportPackageFunction,
+  type ImportPackageFunctionAsync,
+  type PackageFileInfo,
+  type PackageFilesResponse,
+  type ResolvedFrom,
 } from '@pnpm/cafs-types'
 import {
+  type SupportedArchitectures,
   type DependencyManifest,
   type PackageManifest,
+  type PinnedVersion,
 } from '@pnpm/types'
 
-export type { PackageFileInfo, PackageFilesResponse, ImportPackageFunction }
+export type { PackageFileInfo, PackageFilesResponse, ImportPackageFunction, ImportPackageFunctionAsync }
 
 export * from '@pnpm/resolver-base'
 export type BundledManifest = Pick<
@@ -44,22 +49,28 @@ export type UploadPkgToStore = (builtPkgLocation: string, opts: UploadPkgToStore
 
 export interface StoreController {
   requestPackage: RequestPackageFunction
-  fetchPackage: FetchPackageToStoreFunction
+  fetchPackage: FetchPackageToStoreFunction | FetchPackageToStoreFunctionAsync
   getFilesIndexFilePath: GetFilesIndexFilePath
-  importPackage: ImportPackageFunction
+  importPackage: ImportPackageFunctionAsync
   close: () => Promise<void>
-  prune: () => Promise<void>
+  prune: (removeAlienFiles?: boolean) => Promise<void>
   upload: UploadPkgToStore
+  clearResolutionCache: () => void
 }
 
-export type FetchPackageToStoreFunction = (
-  opts: FetchPackageToStoreOptions
-) => {
-  bundledManifest?: BundledManifestFunction
-  filesIndexFile: string
-  files: () => Promise<PackageFilesResponse>
-  finishing: () => Promise<void>
+export interface PkgRequestFetchResult {
+  bundledManifest?: BundledManifest
+  files: PackageFilesResponse
 }
+
+export interface FetchResponse {
+  filesIndexFile: string
+  fetching: () => Promise<PkgRequestFetchResult>
+}
+
+export type FetchPackageToStoreFunction = (opts: FetchPackageToStoreOptions) => FetchResponse
+
+export type FetchPackageToStoreFunctionAsync = (opts: FetchPackageToStoreOptions) => Promise<FetchResponse>
 
 export type GetFilesIndexFilePath = (opts: Pick<FetchPackageToStoreOptions, 'pkg' | 'ignoreScripts'>) => {
   filesIndexFile: string
@@ -84,7 +95,10 @@ export interface FetchPackageToStoreOptions {
    * Expected package is the package name and version that are found in the lockfile.
    */
   expectedPkg?: PkgNameVersion
+  onFetchError?: OnFetchError
 }
+
+export type OnFetchError = (error: Error) => Error
 
 export type RequestPackageFunction = (
   wantedDependency: WantedDependency & { optional?: boolean },
@@ -94,7 +108,7 @@ export type RequestPackageFunction = (
 export interface RequestPackageOptions {
   alwaysTryWorkspacePackages?: boolean
   currentPkg?: {
-    id?: string
+    id?: PkgResolutionId
     resolution?: Resolution
   }
   /**
@@ -110,28 +124,30 @@ export interface RequestPackageOptions {
   lockfileDir: string
   preferredVersions: PreferredVersions
   preferWorkspacePackages?: boolean
-  registry: string
   sideEffectsCache?: boolean
   skipFetch?: boolean
-  update?: boolean
+  update?: false | 'compatible' | 'latest'
   workspacePackages?: WorkspacePackages
   forceResolve?: boolean
+  supportedArchitectures?: SupportedArchitectures
+  onFetchError?: OnFetchError
+  injectWorkspacePackages?: boolean
+  calcSpecifier?: boolean
+  pinnedVersion?: PinnedVersion
 }
 
 export type BundledManifestFunction = () => Promise<BundledManifest | undefined>
 
 export interface PackageResponse {
-  bundledManifest?: BundledManifestFunction
-  files?: () => Promise<PackageFilesResponse>
+  fetching?: () => Promise<PkgRequestFetchResult>
   filesIndexFile?: string
-  finishing?: () => Promise<void> // a package request is finished once its integrity is generated and saved
   body: {
     isLocal: boolean
     isInstallable?: boolean
     resolution: Resolution
     manifest?: PackageManifest
-    id: string
-    normalizedPref?: string
+    id: PkgResolutionId
+    normalizedBareSpecifier?: string
     updated: boolean
     publishedAt?: string
     resolvedVia?: string
@@ -139,6 +155,7 @@ export interface PackageResponse {
     // If latest does not equal the version of the
     // resolved package, it is out-of-date.
     latest?: string
+    alias?: string
   } & (
     {
       isLocal: true
@@ -152,10 +169,13 @@ export interface PackageResponse {
 export type FilesMap = Record<string, string>
 
 export interface ImportOptions {
+  disableRelinkLocalDirDeps?: boolean
   filesMap: FilesMap
   force: boolean
-  fromStore: boolean
+  resolvedFrom: ResolvedFrom
   keepModulesDir?: boolean
 }
 
-export type ImportIndexedPackage = (to: string, opts: ImportOptions) => Promise<string | undefined>
+export type ImportIndexedPackage = (to: string, opts: ImportOptions) => string | undefined
+
+export type ImportIndexedPackageAsync = (to: string, opts: ImportOptions) => Promise<string | undefined>

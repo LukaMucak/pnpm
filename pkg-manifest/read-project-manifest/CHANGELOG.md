@@ -1,5 +1,221 @@
 # @pnpm/read-project-manifest
 
+## 1000.0.10
+
+### Patch Changes
+
+- Updated dependencies [5b73df1]
+  - @pnpm/types@1000.5.0
+  - @pnpm/write-project-manifest@1000.0.7
+
+## 1000.0.9
+
+### Patch Changes
+
+- Updated dependencies [750ae7d]
+  - @pnpm/types@1000.4.0
+  - @pnpm/write-project-manifest@1000.0.6
+
+## 1000.0.8
+
+### Patch Changes
+
+- Updated dependencies [5f7be64]
+- Updated dependencies [5f7be64]
+  - @pnpm/types@1000.3.0
+  - @pnpm/write-project-manifest@1000.0.5
+
+## 1000.0.7
+
+### Patch Changes
+
+- Updated dependencies [a5e4965]
+  - @pnpm/types@1000.2.1
+  - @pnpm/write-project-manifest@1000.0.4
+
+## 1000.0.6
+
+### Patch Changes
+
+- Updated dependencies [8fcc221]
+  - @pnpm/types@1000.2.0
+  - @pnpm/write-project-manifest@1000.0.3
+
+## 1000.0.5
+
+### Patch Changes
+
+- 1e229d7: Replaced `lodash.clonedeep` with the built-in `structuredClone`.
+
+## 1000.0.4
+
+### Patch Changes
+
+- Updated dependencies [b562deb]
+  - @pnpm/types@1000.1.1
+  - @pnpm/error@1000.0.2
+  - @pnpm/write-project-manifest@1000.0.2
+
+## 1000.0.3
+
+### Patch Changes
+
+- e050221: Export `WriteProjectManifest`.
+
+## 1000.0.2
+
+### Patch Changes
+
+- Updated dependencies [9591a18]
+  - @pnpm/types@1000.1.0
+  - @pnpm/write-project-manifest@1000.0.1
+
+## 1000.0.1
+
+### Patch Changes
+
+- @pnpm/error@1000.0.1
+
+## 6.0.10
+
+### Patch Changes
+
+- @pnpm/error@6.0.3
+
+## 6.0.9
+
+### Patch Changes
+
+- @pnpm/error@6.0.2
+
+## 6.0.8
+
+### Patch Changes
+
+- Updated dependencies [d500d9f]
+  - @pnpm/types@12.2.0
+  - @pnpm/write-project-manifest@6.0.7
+
+## 6.0.7
+
+### Patch Changes
+
+- Updated dependencies [7ee59a1]
+  - @pnpm/types@12.1.0
+  - @pnpm/write-project-manifest@6.0.6
+
+## 6.0.6
+
+### Patch Changes
+
+- Updated dependencies [cb006df]
+  - @pnpm/types@12.0.0
+  - @pnpm/write-project-manifest@6.0.5
+
+## 6.0.5
+
+### Patch Changes
+
+- Updated dependencies [0ef168b]
+  - @pnpm/types@11.1.0
+  - @pnpm/write-project-manifest@6.0.4
+
+## 6.0.4
+
+### Patch Changes
+
+- Updated dependencies [dd00eeb]
+- Updated dependencies
+  - @pnpm/types@11.0.0
+  - @pnpm/write-project-manifest@6.0.3
+
+## 6.0.3
+
+### Patch Changes
+
+- Updated dependencies [13e55b2]
+  - @pnpm/types@10.1.1
+  - @pnpm/write-project-manifest@6.0.2
+
+## 6.0.2
+
+### Patch Changes
+
+- Updated dependencies [45f4262]
+  - @pnpm/types@10.1.0
+  - @pnpm/write-project-manifest@6.0.1
+
+## 6.0.1
+
+### Patch Changes
+
+- Updated dependencies [a7aef51]
+  - @pnpm/error@6.0.1
+
+## 6.0.0
+
+### Major Changes
+
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+
+### Patch Changes
+
+- Updated dependencies [7733f3a]
+- Updated dependencies [3ded840]
+- Updated dependencies [43cdd87]
+- Updated dependencies [730929e]
+  - @pnpm/types@10.0.0
+  - @pnpm/error@6.0.0
+  - @pnpm/write-project-manifest@6.0.0
+  - @pnpm/text.comments-parser@3.0.0
+  - @pnpm/graceful-fs@4.0.0
+
+## 5.0.10
+
+### Patch Changes
+
+- Updated dependencies [4d34684f1]
+  - @pnpm/types@9.4.2
+  - @pnpm/write-project-manifest@5.0.6
+
+## 5.0.9
+
+### Patch Changes
+
+- Updated dependencies
+  - @pnpm/types@9.4.1
+  - @pnpm/write-project-manifest@5.0.5
+
+## 5.0.8
+
+### Patch Changes
+
+- Updated dependencies [43ce9e4a6]
+  - @pnpm/types@9.4.0
+  - @pnpm/write-project-manifest@5.0.4
+
+## 5.0.7
+
+### Patch Changes
+
+- Updated dependencies [d774a3196]
+  - @pnpm/types@9.3.0
+  - @pnpm/write-project-manifest@5.0.3
+
+## 5.0.6
+
+### Patch Changes
+
+- Updated dependencies [9caa33d53]
+  - @pnpm/graceful-fs@3.2.0
+
+## 5.0.5
+
+### Patch Changes
+
+- Updated dependencies [083bbf590]
+  - @pnpm/graceful-fs@3.1.0
+
 ## 5.0.4
 
 ### Patch Changes

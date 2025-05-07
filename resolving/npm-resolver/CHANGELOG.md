@@ -1,5 +1,459 @@
 # @pnpm/npm-resolver
 
+## 1004.0.0
+
+### Major Changes
+
+- 8a9f3a4: `pref` renamed to `bareSpecifier`.
+- 5b73df1: Renamed `normalizedPref` to `specifiers`.
+
+### Minor Changes
+
+- 9c3dd03: **Added support for installing JSR packages.** You can now install JSR packages using the following syntax:
+
+  ```
+  pnpm add jsr:<pkg_name>
+  ```
+
+  or with a version range:
+
+  ```
+  pnpm add jsr:<pkg_name>@<range>
+  ```
+
+  For example, running:
+
+  ```
+  pnpm add jsr:@foo/bar
+  ```
+
+  will add the following entry to your `package.json`:
+
+  ```json
+  {
+    "dependencies": {
+      "@foo/bar": "jsr:^0.1.2"
+    }
+  }
+  ```
+
+  When publishing, this entry will be transformed into a format compatible with npm, older versions of Yarn, and previous pnpm versions:
+
+  ```json
+  {
+    "dependencies": {
+      "@foo/bar": "npm:@jsr/foo__bar@^0.1.2"
+    }
+  }
+  ```
+
+  Related issue: [#8941](https://github.com/pnpm/pnpm/issues/8941).
+
+  Note: The `@jsr` scope defaults to <https://npm.jsr.io/> if the `@jsr:registry` setting is not defined.
+
+### Patch Changes
+
+- Updated dependencies [8a9f3a4]
+- Updated dependencies [9c3dd03]
+- Updated dependencies [5b73df1]
+- Updated dependencies [9c3dd03]
+- Updated dependencies [5b73df1]
+  - @pnpm/resolver-base@1003.0.0
+  - @pnpm/core-loggers@1001.0.0
+  - @pnpm/logger@1001.0.0
+  - @pnpm/resolving.jsr-specifier-parser@1000.0.0
+  - @pnpm/types@1000.5.0
+  - @pnpm/pick-registry-for-package@1000.0.7
+  - @pnpm/crypto.hash@1000.1.1
+
+## 1003.0.0
+
+### Major Changes
+
+- 81f441c: `updateToLatest` replaced with `update` field.
+
+### Patch Changes
+
+- Updated dependencies [81f441c]
+  - @pnpm/resolver-base@1002.0.0
+  - @pnpm/crypto.hash@1000.1.1
+
+## 1002.0.0
+
+### Major Changes
+
+- 72cff38: The resolving function now takes a `registries` object, so it finds the required registry itself instead of receiving it from package requester.
+
+### Patch Changes
+
+- Updated dependencies [750ae7d]
+- Updated dependencies [72cff38]
+- Updated dependencies [750ae7d]
+  - @pnpm/types@1000.4.0
+  - @pnpm/resolver-base@1001.0.0
+  - @pnpm/core-loggers@1000.2.0
+  - @pnpm/pick-registry-for-package@1000.0.6
+  - @pnpm/crypto.hash@1000.1.1
+
+## 1001.0.1
+
+### Patch Changes
+
+- Updated dependencies [5f7be64]
+- Updated dependencies [5f7be64]
+  - @pnpm/types@1000.3.0
+  - @pnpm/core-loggers@1000.1.5
+  - @pnpm/resolver-base@1000.2.1
+  - @pnpm/crypto.hash@1000.1.1
+
+## 1001.0.0
+
+### Major Changes
+
+- 3d52365: The `@pnpm/npm-resolver` package can now return `workspace` in the `resolvedVia` field of its results. This will be the case if the resolved package was requested through the `workspace:` protocol or if the wanted dependency's name and specifier match a package in the workspace. Previously, the `resolvedVia` field was always set to `local-filesystem` for workspace packages.
+
+### Patch Changes
+
+- Updated dependencies [3d52365]
+  - @pnpm/resolver-base@1000.2.0
+  - @pnpm/crypto.hash@1000.1.1
+
+## 1000.1.7
+
+### Patch Changes
+
+- @pnpm/crypto.hash@1000.1.1
+
+## 1000.1.6
+
+### Patch Changes
+
+- 8371664: When a package version cannot be found in the package metadata, print the registry from which the package was fetched.
+
+## 1000.1.5
+
+### Patch Changes
+
+- Updated dependencies [daf47e9]
+- Updated dependencies [a5e4965]
+  - @pnpm/crypto.hash@1000.1.0
+  - @pnpm/types@1000.2.1
+  - @pnpm/core-loggers@1000.1.4
+  - @pnpm/resolver-base@1000.1.4
+
+## 1000.1.4
+
+### Patch Changes
+
+- Updated dependencies [8fcc221]
+  - @pnpm/types@1000.2.0
+  - @pnpm/core-loggers@1000.1.3
+  - @pnpm/resolver-base@1000.1.3
+  - @pnpm/crypto.hash@1000.0.0
+
+## 1000.1.3
+
+### Patch Changes
+
+- Updated dependencies [9a44e6c]
+- Updated dependencies [b562deb]
+  - @pnpm/constants@1001.1.0
+  - @pnpm/types@1000.1.1
+  - @pnpm/error@1000.0.2
+  - @pnpm/core-loggers@1000.1.2
+  - @pnpm/resolver-base@1000.1.2
+  - @pnpm/crypto.hash@1000.0.0
+
+## 1000.1.2
+
+### Patch Changes
+
+- Updated dependencies [9591a18]
+  - @pnpm/types@1000.1.0
+  - @pnpm/core-loggers@1000.1.1
+  - @pnpm/resolver-base@1000.1.1
+  - @pnpm/crypto.hash@1000.0.0
+
+## 1000.1.1
+
+### Patch Changes
+
+- Updated dependencies [516c4b3]
+  - @pnpm/core-loggers@1000.1.0
+  - @pnpm/crypto.hash@1000.0.0
+
+## 1000.1.0
+
+### Minor Changes
+
+- 6483b64: A new setting, `inject-workspace-packages`, has been added to allow hard-linking all local workspace dependencies instead of symlinking them. Previously, this behavior was achievable via the [`dependenciesMeta[].injected`](https://pnpm.io/package_json#dependenciesmetainjected) setting, which remains supported [#8836](https://github.com/pnpm/pnpm/pull/8836).
+
+### Patch Changes
+
+- Updated dependencies [d2e83b0]
+- Updated dependencies [6483b64]
+- Updated dependencies [b0f3c71]
+- Updated dependencies [a76da0c]
+  - @pnpm/constants@1001.0.0
+  - @pnpm/resolver-base@1000.1.0
+  - @pnpm/fetching-types@1000.1.0
+  - @pnpm/error@1000.0.1
+  - @pnpm/crypto.hash@1000.0.0
+
+## 22.0.0
+
+### Major Changes
+
+- 501c152: Use SHA256 to encode the package name of a package that has upper case letters in its name.
+
+### Patch Changes
+
+- Updated dependencies [19d5b51]
+- Updated dependencies [8108680]
+- Updated dependencies [dcd2917]
+- Updated dependencies [c4f5231]
+  - @pnpm/constants@10.0.0
+  - @pnpm/crypto.hash@1.0.0
+  - @pnpm/error@6.0.3
+
+## 21.1.1
+
+### Patch Changes
+
+- 222d10a: Use `crypto.hash`, when available, for improved performance [#8629](https://github.com/pnpm/pnpm/pull/8629).
+- Updated dependencies [222d10a]
+- Updated dependencies [222d10a]
+  - @pnpm/crypto.polyfill@1.0.0
+
+## 21.1.0
+
+### Minor Changes
+
+- 83681da: Keep `libc` field in `clearMeta`.
+
+### Patch Changes
+
+- Updated dependencies [83681da]
+  - @pnpm/constants@9.0.0
+  - @pnpm/error@6.0.2
+
+## 21.0.5
+
+### Patch Changes
+
+- Updated dependencies [d500d9f]
+  - @pnpm/types@12.2.0
+  - @pnpm/core-loggers@10.0.7
+  - @pnpm/resolver-base@13.0.4
+
+## 21.0.4
+
+### Patch Changes
+
+- Updated dependencies [7ee59a1]
+  - @pnpm/types@12.1.0
+  - @pnpm/core-loggers@10.0.6
+  - @pnpm/resolver-base@13.0.3
+
+## 21.0.3
+
+### Patch Changes
+
+- Updated dependencies [cb006df]
+  - @pnpm/types@12.0.0
+  - @pnpm/core-loggers@10.0.5
+  - @pnpm/resolver-base@13.0.2
+
+## 21.0.2
+
+### Patch Changes
+
+- Updated dependencies [0ef168b]
+  - @pnpm/types@11.1.0
+  - @pnpm/core-loggers@10.0.4
+  - @pnpm/resolver-base@13.0.1
+
+## 21.0.1
+
+### Patch Changes
+
+- afe520d: Update rename-overwrite to v6.
+
+## 21.0.0
+
+### Major Changes
+
+- dd00eeb: Renamed dir to rootDir in the Project object.
+
+### Patch Changes
+
+- Updated dependencies [dd00eeb]
+- Updated dependencies
+  - @pnpm/resolver-base@13.0.0
+  - @pnpm/types@11.0.0
+  - @pnpm/core-loggers@10.0.3
+
+## 20.0.1
+
+### Patch Changes
+
+- Updated dependencies [13e55b2]
+  - @pnpm/types@10.1.1
+  - @pnpm/core-loggers@10.0.2
+  - @pnpm/resolver-base@12.0.2
+
+## 20.0.0
+
+### Major Changes
+
+- 0c08e1c: Breaking change.
+
+## 19.0.4
+
+### Patch Changes
+
+- Updated dependencies [45f4262]
+  - @pnpm/types@10.1.0
+  - @pnpm/core-loggers@10.0.1
+  - @pnpm/resolver-base@12.0.1
+
+## 19.0.3
+
+### Patch Changes
+
+- Updated dependencies [a7aef51]
+  - @pnpm/error@6.0.1
+
+## 19.0.2
+
+### Patch Changes
+
+- 43b6bb7: Print a better error message when `resolution-mode` is set to `time-based` and the registry fails to return the `"time"` field in the package's metadata.
+
+## 19.0.1
+
+### Patch Changes
+
+- cb0f459: `pnpm update` should not fail when there's an aliased local workspace dependency [#7975](https://github.com/pnpm/pnpm/issues/7975).
+- Updated dependencies [cb0f459]
+  - @pnpm/workspace.spec-parser@1.0.0
+
+## 19.0.0
+
+### Major Changes
+
+- cdd8365: Package ID does not contain the registry domain.
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+- d381a60: Support for lockfile v5 is dropped. Use pnpm v8 to convert lockfile v5 to lockfile v6 [#7470](https://github.com/pnpm/pnpm/pull/7470).
+
+### Patch Changes
+
+- Updated dependencies [7733f3a]
+- Updated dependencies [3ded840]
+- Updated dependencies [43cdd87]
+- Updated dependencies [b13d2dc]
+- Updated dependencies [730929e]
+  - @pnpm/types@10.0.0
+  - @pnpm/error@6.0.0
+  - @pnpm/resolve-workspace-range@6.0.0
+  - @pnpm/resolver-base@12.0.0
+  - @pnpm/fetching-types@6.0.0
+  - @pnpm/core-loggers@10.0.0
+  - @pnpm/graceful-fs@4.0.0
+
+## 18.1.0
+
+### Minor Changes
+
+- 31054a63e: Running `pnpm update -r --latest` will no longer downgrade prerelease dependencies [#7436](https://github.com/pnpm/pnpm/issues/7436).
+
+### Patch Changes
+
+- Updated dependencies [31054a63e]
+  - @pnpm/resolver-base@11.1.0
+
+## 18.0.2
+
+### Patch Changes
+
+- 33313d2fd: Update rename-overwrite to v5.
+- Updated dependencies [4d34684f1]
+  - @pnpm/types@9.4.2
+  - @pnpm/core-loggers@9.0.6
+  - @pnpm/resolver-base@11.0.2
+
+## 18.0.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @pnpm/types@9.4.1
+  - @pnpm/core-loggers@9.0.5
+  - @pnpm/resolver-base@11.0.1
+
+## 18.0.0
+
+### Major Changes
+
+- cd4fcfff0: (IMPORTANT) When the package tarballs aren't hosted on the same domain on which the registry (the server with the package metadata) is, the dependency keys in the lockfile should only contain `/<pkg_name>@<pkg_version`, not `<domain>/<pkg_name>@<pkg_version>`.
+
+  This change is a fix to avoid the same package from being added to `node_modules/.pnpm` multiple times. The change to the lockfile is backward compatible, so previous versions of pnpm will work with the fixed lockfile.
+
+  We recommend that all team members update pnpm in order to avoid repeated changes in the lockfile.
+
+  Related PR: [#7318](https://github.com/pnpm/pnpm/pull/7318).
+
+## 17.0.0
+
+### Major Changes
+
+- 4c2450208: (Important) Tarball resolutions in `pnpm-lock.yaml` will no longer contain a `registry` field. This field has been unused for a long time. This change should not cause any issues besides backward compatible modifications to the lockfile [#7262](https://github.com/pnpm/pnpm/pull/7262).
+
+### Patch Changes
+
+- Updated dependencies [4c2450208]
+  - @pnpm/resolver-base@11.0.0
+
+## 16.0.13
+
+### Patch Changes
+
+- Updated dependencies [43ce9e4a6]
+  - @pnpm/types@9.4.0
+  - @pnpm/core-loggers@9.0.4
+  - @pnpm/resolver-base@10.0.4
+
+## 16.0.12
+
+### Patch Changes
+
+- 01bc58e2c: Update ssri to v10.0.5.
+- ff55119a8: Update lru-cache.
+
+## 16.0.11
+
+### Patch Changes
+
+- Updated dependencies [d774a3196]
+  - @pnpm/types@9.3.0
+  - @pnpm/core-loggers@9.0.3
+  - @pnpm/resolver-base@10.0.3
+
+## 16.0.10
+
+### Patch Changes
+
+- Updated dependencies [9caa33d53]
+  - @pnpm/graceful-fs@3.2.0
+
+## 16.0.9
+
+### Patch Changes
+
+- 41c2b65cf: Respect workspace alias syntax in pkg graph [#6922](https://github.com/pnpm/pnpm/issues/6922)
+- Updated dependencies [083bbf590]
+  - @pnpm/graceful-fs@3.1.0
+
 ## 16.0.8
 
 ### Patch Changes

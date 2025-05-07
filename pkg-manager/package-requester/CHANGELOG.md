@@ -1,5 +1,829 @@
 # @pnpm/package-requester
 
+## 1004.0.0
+
+### Major Changes
+
+- 8a9f3a4: `pref` renamed to `bareSpecifier`.
+- 5b73df1: Renamed `normalizedPref` to `specifiers`.
+
+### Minor Changes
+
+- 9c3dd03: **Added support for installing JSR packages.** You can now install JSR packages using the following syntax:
+
+  ```
+  pnpm add jsr:<pkg_name>
+  ```
+
+  or with a version range:
+
+  ```
+  pnpm add jsr:<pkg_name>@<range>
+  ```
+
+  For example, running:
+
+  ```
+  pnpm add jsr:@foo/bar
+  ```
+
+  will add the following entry to your `package.json`:
+
+  ```json
+  {
+    "dependencies": {
+      "@foo/bar": "jsr:^0.1.2"
+    }
+  }
+  ```
+
+  When publishing, this entry will be transformed into a format compatible with npm, older versions of Yarn, and previous pnpm versions:
+
+  ```json
+  {
+    "dependencies": {
+      "@foo/bar": "npm:@jsr/foo__bar@^0.1.2"
+    }
+  }
+  ```
+
+  Related issue: [#8941](https://github.com/pnpm/pnpm/issues/8941).
+
+  Note: The `@jsr` scope defaults to <https://npm.jsr.io/> if the `@jsr:registry` setting is not defined.
+
+### Patch Changes
+
+- Updated dependencies [8a9f3a4]
+- Updated dependencies [5b73df1]
+- Updated dependencies [9c3dd03]
+- Updated dependencies [5b73df1]
+  - @pnpm/store-controller-types@1003.0.0
+  - @pnpm/resolver-base@1003.0.0
+  - @pnpm/core-loggers@1001.0.0
+  - @pnpm/logger@1001.0.0
+  - @pnpm/types@1000.5.0
+  - @pnpm/store.cafs@1000.0.11
+  - @pnpm/fetcher-base@1000.0.10
+  - @pnpm/pick-fetcher@1000.0.0
+  - @pnpm/package-is-installable@1000.0.9
+  - @pnpm/dependency-path@1000.0.8
+  - @pnpm/read-package-json@1000.0.8
+  - @pnpm/worker@1000.1.5
+
+## 1003.0.1
+
+### Patch Changes
+
+- Updated dependencies [81f441c]
+  - @pnpm/resolver-base@1002.0.0
+  - @pnpm/fetcher-base@1000.0.9
+  - @pnpm/pick-fetcher@1000.0.0
+  - @pnpm/store-controller-types@1002.0.1
+  - @pnpm/store.cafs@1000.0.10
+  - @pnpm/worker@1000.1.4
+
+## 1003.0.0
+
+### Major Changes
+
+- 72cff38: The resolving function now takes a `registries` object, so it finds the required registry itself instead of receiving it from package requester.
+
+### Patch Changes
+
+- Updated dependencies [750ae7d]
+- Updated dependencies [72cff38]
+- Updated dependencies [750ae7d]
+  - @pnpm/types@1000.4.0
+  - @pnpm/store-controller-types@1002.0.0
+  - @pnpm/resolver-base@1001.0.0
+  - @pnpm/core-loggers@1000.2.0
+  - @pnpm/package-is-installable@1000.0.8
+  - @pnpm/fetcher-base@1000.0.8
+  - @pnpm/dependency-path@1000.0.7
+  - @pnpm/read-package-json@1000.0.7
+  - @pnpm/store.cafs@1000.0.9
+  - @pnpm/worker@1000.1.3
+  - @pnpm/pick-fetcher@1000.0.0
+
+## 1002.0.2
+
+### Patch Changes
+
+- Updated dependencies [5f7be64]
+- Updated dependencies [5f7be64]
+  - @pnpm/types@1000.3.0
+  - @pnpm/package-is-installable@1000.0.7
+  - @pnpm/fetcher-base@1000.0.7
+  - @pnpm/core-loggers@1000.1.5
+  - @pnpm/dependency-path@1000.0.6
+  - @pnpm/read-package-json@1000.0.6
+  - @pnpm/resolver-base@1000.2.1
+  - @pnpm/store.cafs@1000.0.8
+  - @pnpm/store-controller-types@1001.0.5
+  - @pnpm/worker@1000.1.2
+  - @pnpm/pick-fetcher@1000.0.0
+
+## 1002.0.1
+
+### Patch Changes
+
+- Updated dependencies [3d52365]
+  - @pnpm/resolver-base@1000.2.0
+  - @pnpm/fetcher-base@1000.0.6
+  - @pnpm/pick-fetcher@1000.0.0
+  - @pnpm/store-controller-types@1001.0.4
+  - @pnpm/store.cafs@1000.0.7
+  - @pnpm/worker@1000.1.1
+
+## 1002.0.0
+
+### Patch Changes
+
+- Updated dependencies [2e05789]
+  - @pnpm/worker@1000.1.0
+
+## 1001.0.4
+
+### Patch Changes
+
+- @pnpm/worker@1000.0.8
+- @pnpm/dependency-path@1000.0.5
+
+## 1001.0.3
+
+### Patch Changes
+
+- Updated dependencies [a5e4965]
+  - @pnpm/types@1000.2.1
+  - @pnpm/dependency-path@1000.0.4
+  - @pnpm/package-is-installable@1000.0.6
+  - @pnpm/fetcher-base@1000.0.5
+  - @pnpm/core-loggers@1000.1.4
+  - @pnpm/read-package-json@1000.0.5
+  - @pnpm/resolver-base@1000.1.4
+  - @pnpm/store.cafs@1000.0.6
+  - @pnpm/store-controller-types@1001.0.3
+  - @pnpm/worker@1000.0.7
+  - @pnpm/pick-fetcher@1000.0.0
+
+## 1001.0.2
+
+### Patch Changes
+
+- Updated dependencies [8fcc221]
+  - @pnpm/types@1000.2.0
+  - @pnpm/package-is-installable@1000.0.5
+  - @pnpm/fetcher-base@1000.0.4
+  - @pnpm/core-loggers@1000.1.3
+  - @pnpm/dependency-path@1000.0.3
+  - @pnpm/read-package-json@1000.0.4
+  - @pnpm/resolver-base@1000.1.3
+  - @pnpm/store.cafs@1000.0.5
+  - @pnpm/store-controller-types@1001.0.2
+  - @pnpm/worker@1000.0.6
+  - @pnpm/pick-fetcher@1000.0.0
+
+## 1001.0.1
+
+### Patch Changes
+
+- Updated dependencies [b562deb]
+  - @pnpm/types@1000.1.1
+  - @pnpm/error@1000.0.2
+  - @pnpm/package-is-installable@1000.0.4
+  - @pnpm/fetcher-base@1000.0.3
+  - @pnpm/core-loggers@1000.1.2
+  - @pnpm/dependency-path@1000.0.2
+  - @pnpm/read-package-json@1000.0.3
+  - @pnpm/resolver-base@1000.1.2
+  - @pnpm/store.cafs@1000.0.4
+  - @pnpm/store-controller-types@1001.0.1
+  - @pnpm/worker@1000.0.5
+  - @pnpm/pick-fetcher@1000.0.0
+
+## 1001.0.0
+
+### Major Changes
+
+- dde650b: `RequestPackageOptions` now takes a union type for the `update` option, instead of a separate `updateToLatest` option.
+
+  This avoids pitfalls around specifying only `update` or, specifying `update: false`, but still providing `updateToLatest: true`.
+
+### Patch Changes
+
+- Updated dependencies [dde650b]
+  - @pnpm/store-controller-types@1001.0.0
+  - @pnpm/store.cafs@1000.0.3
+  - @pnpm/worker@1000.0.4
+
+## 1000.1.2
+
+### Patch Changes
+
+- Updated dependencies [9591a18]
+  - @pnpm/types@1000.1.0
+  - @pnpm/package-is-installable@1000.0.3
+  - @pnpm/fetcher-base@1000.0.2
+  - @pnpm/core-loggers@1000.1.1
+  - @pnpm/dependency-path@1000.0.1
+  - @pnpm/read-package-json@1000.0.2
+  - @pnpm/resolver-base@1000.1.1
+  - @pnpm/store.cafs@1000.0.2
+  - @pnpm/store-controller-types@1000.1.1
+  - @pnpm/worker@1000.0.3
+  - @pnpm/pick-fetcher@1000.0.0
+
+## 1000.1.1
+
+### Patch Changes
+
+- Updated dependencies [516c4b3]
+- Updated dependencies [7272992]
+  - @pnpm/core-loggers@1000.1.0
+  - @pnpm/worker@1000.0.2
+  - @pnpm/package-is-installable@1000.0.2
+
+## 1000.1.0
+
+### Minor Changes
+
+- 6483b64: A new setting, `inject-workspace-packages`, has been added to allow hard-linking all local workspace dependencies instead of symlinking them. Previously, this behavior was achievable via the [`dependenciesMeta[].injected`](https://pnpm.io/package_json#dependenciesmetainjected) setting, which remains supported [#8836](https://github.com/pnpm/pnpm/pull/8836).
+
+### Patch Changes
+
+- Updated dependencies [6483b64]
+  - @pnpm/store-controller-types@1000.1.0
+  - @pnpm/resolver-base@1000.1.0
+  - @pnpm/error@1000.0.1
+  - @pnpm/store.cafs@1000.0.1
+  - @pnpm/fetcher-base@1000.0.1
+  - @pnpm/pick-fetcher@1000.0.0
+  - @pnpm/package-is-installable@1000.0.1
+  - @pnpm/read-package-json@1000.0.1
+  - @pnpm/worker@1000.0.1
+
+## 26.0.0
+
+### Major Changes
+
+- d433cb9: Some registries allow identical content to be published under different package names or versions. To accommodate this, index files in the store are now stored using both the content hash and package identifier.
+
+  This approach ensures that we can:
+
+  1. Validate that the integrity in the lockfile corresponds to the correct package,
+     which might not be the case after a poorly resolved Git conflict.
+  2. Allow the same content to be referenced by different packages or different versions of the same package.
+
+  Related PR: [#8510](https://github.com/pnpm/pnpm/pull/8510)
+  Related issue: [#8204](https://github.com/pnpm/pnpm/issues/8204)
+
+### Patch Changes
+
+- Updated dependencies [dcd2917]
+- Updated dependencies [d433cb9]
+- Updated dependencies [e476b07]
+- Updated dependencies [099e6af]
+- Updated dependencies [d55b259]
+  - @pnpm/dependency-path@6.0.0
+  - @pnpm/store.cafs@5.0.0
+  - @pnpm/package-is-installable@9.0.12
+  - @pnpm/worker@2.0.0
+  - @pnpm/error@6.0.3
+  - @pnpm/fetcher-base@16.0.7
+  - @pnpm/store-controller-types@18.1.6
+  - @pnpm/read-package-json@9.0.10
+
+## 25.2.10
+
+### Patch Changes
+
+- Updated dependencies [222d10a]
+- Updated dependencies [a1f4df2]
+  - @pnpm/worker@1.0.13
+  - @pnpm/store.cafs@4.0.2
+  - @pnpm/package-is-installable@9.0.11
+  - @pnpm/dependency-path@5.1.7
+
+## 25.2.9
+
+### Patch Changes
+
+- Updated dependencies [db7ff76]
+  - @pnpm/store.cafs@4.0.1
+  - @pnpm/worker@1.0.12
+
+## 25.2.8
+
+### Patch Changes
+
+- @pnpm/error@6.0.2
+- @pnpm/package-is-installable@9.0.10
+- @pnpm/read-package-json@9.0.9
+- @pnpm/worker@1.0.11
+
+## 25.2.7
+
+### Patch Changes
+
+- Updated dependencies [d500d9f]
+- Updated dependencies [db420ab]
+  - @pnpm/types@12.2.0
+  - @pnpm/store.cafs@4.0.0
+  - @pnpm/package-is-installable@9.0.9
+  - @pnpm/fetcher-base@16.0.7
+  - @pnpm/core-loggers@10.0.7
+  - @pnpm/dependency-path@5.1.6
+  - @pnpm/read-package-json@9.0.8
+  - @pnpm/resolver-base@13.0.4
+  - @pnpm/store-controller-types@18.1.6
+  - @pnpm/worker@1.0.10
+  - @pnpm/pick-fetcher@3.0.0
+
+## 25.2.6
+
+### Patch Changes
+
+- Updated dependencies [7ee59a1]
+  - @pnpm/types@12.1.0
+  - @pnpm/package-is-installable@9.0.8
+  - @pnpm/fetcher-base@16.0.6
+  - @pnpm/core-loggers@10.0.6
+  - @pnpm/dependency-path@5.1.5
+  - @pnpm/read-package-json@9.0.7
+  - @pnpm/resolver-base@13.0.3
+  - @pnpm/store.cafs@3.0.8
+  - @pnpm/store-controller-types@18.1.5
+  - @pnpm/worker@1.0.9
+  - @pnpm/pick-fetcher@3.0.0
+
+## 25.2.5
+
+### Patch Changes
+
+- Updated dependencies [33ba536]
+  - @pnpm/package-is-installable@9.0.7
+
+## 25.2.4
+
+### Patch Changes
+
+- Updated dependencies [cb006df]
+  - @pnpm/types@12.0.0
+  - @pnpm/package-is-installable@9.0.6
+  - @pnpm/fetcher-base@16.0.5
+  - @pnpm/core-loggers@10.0.5
+  - @pnpm/dependency-path@5.1.4
+  - @pnpm/read-package-json@9.0.6
+  - @pnpm/resolver-base@13.0.2
+  - @pnpm/store.cafs@3.0.7
+  - @pnpm/store-controller-types@18.1.4
+  - @pnpm/worker@1.0.8
+  - @pnpm/pick-fetcher@3.0.0
+
+## 25.2.3
+
+### Patch Changes
+
+- Updated dependencies [0ef168b]
+  - @pnpm/types@11.1.0
+  - @pnpm/package-is-installable@9.0.5
+  - @pnpm/fetcher-base@16.0.4
+  - @pnpm/core-loggers@10.0.4
+  - @pnpm/dependency-path@5.1.3
+  - @pnpm/read-package-json@9.0.5
+  - @pnpm/resolver-base@13.0.1
+  - @pnpm/store.cafs@3.0.6
+  - @pnpm/store-controller-types@18.1.3
+  - @pnpm/worker@1.0.7
+  - @pnpm/pick-fetcher@3.0.0
+
+## 25.2.2
+
+### Patch Changes
+
+- Updated dependencies [afe520d]
+- Updated dependencies [afe520d]
+  - @pnpm/store.cafs@3.0.5
+  - @pnpm/worker@1.0.6
+
+## 25.2.1
+
+### Patch Changes
+
+- Updated dependencies [dd00eeb]
+- Updated dependencies
+  - @pnpm/resolver-base@13.0.0
+  - @pnpm/types@11.0.0
+  - @pnpm/fetcher-base@16.0.3
+  - @pnpm/pick-fetcher@3.0.0
+  - @pnpm/store-controller-types@18.1.2
+  - @pnpm/package-is-installable@9.0.4
+  - @pnpm/core-loggers@10.0.3
+  - @pnpm/dependency-path@5.1.2
+  - @pnpm/read-package-json@9.0.4
+  - @pnpm/store.cafs@3.0.4
+  - @pnpm/worker@1.0.5
+
+## 25.2.0
+
+### Minor Changes
+
+- 7c6c923: Some registries allow the exact same content to be published under different package names and/or versions. This breaks the validity checks of packages in the store. To avoid errors when verifying the names and versions of such packages in the store, you may now set the `strict-store-pkg-content-check` setting to `false` [#4724](https://github.com/pnpm/pnpm/issues/4724).
+
+### Patch Changes
+
+- Updated dependencies [13e55b2]
+  - @pnpm/types@10.1.1
+  - @pnpm/package-is-installable@9.0.3
+  - @pnpm/fetcher-base@16.0.2
+  - @pnpm/core-loggers@10.0.2
+  - @pnpm/dependency-path@5.1.1
+  - @pnpm/read-package-json@9.0.3
+  - @pnpm/resolver-base@12.0.2
+  - @pnpm/store.cafs@3.0.3
+  - @pnpm/store-controller-types@18.1.1
+  - @pnpm/worker@1.0.4
+  - @pnpm/pick-fetcher@3.0.0
+
+## 25.1.4
+
+### Patch Changes
+
+- Updated dependencies [47341e5]
+  - @pnpm/dependency-path@5.1.0
+
+## 25.1.3
+
+### Patch Changes
+
+- Updated dependencies [0c08e1c]
+  - @pnpm/store-controller-types@18.1.0
+  - @pnpm/store.cafs@3.0.2
+  - @pnpm/worker@1.0.3
+
+## 25.1.2
+
+### Patch Changes
+
+- Updated dependencies [45f4262]
+- Updated dependencies
+  - @pnpm/types@10.1.0
+  - @pnpm/dependency-path@5.0.0
+  - @pnpm/package-is-installable@9.0.2
+  - @pnpm/fetcher-base@16.0.1
+  - @pnpm/core-loggers@10.0.1
+  - @pnpm/read-package-json@9.0.2
+  - @pnpm/resolver-base@12.0.1
+  - @pnpm/store.cafs@3.0.1
+  - @pnpm/store-controller-types@18.0.1
+  - @pnpm/worker@1.0.2
+  - @pnpm/pick-fetcher@3.0.0
+
+## 25.1.1
+
+### Patch Changes
+
+- Updated dependencies [a7aef51]
+  - @pnpm/error@6.0.1
+  - @pnpm/package-is-installable@9.0.1
+  - @pnpm/read-package-json@9.0.1
+  - @pnpm/worker@1.0.1
+
+## 25.1.0
+
+### Minor Changes
+
+- 9719a42: New setting called `virtual-store-dir-max-length` added to modify the maximum allowed length of the directories inside `node_modules/.pnpm`. The default length is set to 120 characters. This setting is particularly useful on Windows, where there is a limit to the maximum length of a file path [#7355](https://github.com/pnpm/pnpm/issues/7355).
+
+### Patch Changes
+
+- Updated dependencies [9719a42]
+  - @pnpm/dependency-path@4.0.0
+
+## 25.0.1
+
+### Patch Changes
+
+- b7d2ed4: The `engines.pnpm` field in the `package.json` files of dependencies should be ignored [#7965](https://github.com/pnpm/pnpm/issues/7965).
+
+## 25.0.0
+
+### Major Changes
+
+- cdd8365: Package ID does not contain the registry domain.
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+
+### Minor Changes
+
+- 730929e: Add a field named `ignoredOptionalDependencies`. This is an array of strings. If an optional dependency has its name included in this array, it will be skipped.
+
+### Patch Changes
+
+- Updated dependencies [7733f3a]
+- Updated dependencies [3ded840]
+- Updated dependencies [cdd8365]
+- Updated dependencies [89b396b]
+- Updated dependencies [43cdd87]
+- Updated dependencies [6cdbf11]
+- Updated dependencies [36dcaa0]
+- Updated dependencies [11d9ebd]
+- Updated dependencies [36dcaa0]
+- Updated dependencies [d381a60]
+- Updated dependencies [b13d2dc]
+- Updated dependencies [730929e]
+- Updated dependencies [98a1266]
+  - @pnpm/types@10.0.0
+  - @pnpm/error@6.0.0
+  - @pnpm/worker@1.0.0
+  - @pnpm/dependency-path@3.0.0
+  - @pnpm/read-package-json@9.0.0
+  - @pnpm/package-is-installable@9.0.0
+  - @pnpm/store-controller-types@18.0.0
+  - @pnpm/resolver-base@12.0.0
+  - @pnpm/fetcher-base@16.0.0
+  - @pnpm/pick-fetcher@3.0.0
+  - @pnpm/core-loggers@10.0.0
+  - @pnpm/graceful-fs@4.0.0
+  - @pnpm/store.cafs@3.0.0
+
+## 24.1.8
+
+### Patch Changes
+
+- 31054a63e: Running `pnpm update -r --latest` will no longer downgrade prerelease dependencies [#7436](https://github.com/pnpm/pnpm/issues/7436).
+- Updated dependencies [31054a63e]
+  - @pnpm/store-controller-types@17.2.0
+  - @pnpm/resolver-base@11.1.0
+  - @pnpm/store.cafs@2.0.12
+  - @pnpm/fetcher-base@15.0.7
+  - @pnpm/pick-fetcher@2.0.1
+  - @pnpm/worker@0.3.14
+
+## 24.1.7
+
+### Patch Changes
+
+- @pnpm/worker@0.3.13
+
+## 24.1.6
+
+### Patch Changes
+
+- Updated dependencies [33313d2fd]
+- Updated dependencies [4d34684f1]
+  - @pnpm/store.cafs@2.0.11
+  - @pnpm/types@9.4.2
+  - @pnpm/worker@0.3.12
+  - @pnpm/package-is-installable@8.1.2
+  - @pnpm/fetcher-base@15.0.6
+  - @pnpm/core-loggers@9.0.6
+  - @pnpm/dependency-path@2.1.7
+  - @pnpm/read-package-json@8.0.7
+  - @pnpm/resolver-base@11.0.2
+  - @pnpm/store-controller-types@17.1.4
+  - @pnpm/pick-fetcher@2.0.1
+
+## 24.1.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @pnpm/types@9.4.1
+  - @pnpm/package-is-installable@8.1.1
+  - @pnpm/fetcher-base@15.0.5
+  - @pnpm/core-loggers@9.0.5
+  - @pnpm/dependency-path@2.1.6
+  - @pnpm/read-package-json@8.0.6
+  - @pnpm/resolver-base@11.0.1
+  - @pnpm/store.cafs@2.0.10
+  - @pnpm/store-controller-types@17.1.3
+  - @pnpm/worker@0.3.11
+  - @pnpm/pick-fetcher@2.0.1
+
+## 24.1.4
+
+### Patch Changes
+
+- @pnpm/worker@0.3.10
+
+## 24.1.3
+
+### Patch Changes
+
+- 1e7bd4af3: Use availableParallelism, when available.
+- Updated dependencies [1e7bd4af3]
+  - @pnpm/worker@0.3.9
+
+## 24.1.2
+
+### Patch Changes
+
+- Updated dependencies [291607c5a]
+  - @pnpm/store-controller-types@17.1.2
+  - @pnpm/store.cafs@2.0.9
+  - @pnpm/worker@0.3.8
+
+## 24.1.1
+
+### Patch Changes
+
+- 7ea45afbe: If a package's tarball cannot be fetched, print the dependency chain that leads to the failed package [#7265](https://github.com/pnpm/pnpm/pull/7265).
+- Updated dependencies [4c2450208]
+- Updated dependencies [7ea45afbe]
+  - @pnpm/resolver-base@11.0.0
+  - @pnpm/store-controller-types@17.1.1
+  - @pnpm/fetcher-base@15.0.4
+  - @pnpm/pick-fetcher@2.0.1
+  - @pnpm/worker@0.3.7
+  - @pnpm/store.cafs@2.0.8
+
+## 24.1.0
+
+### Minor Changes
+
+- 43ce9e4a6: Support for multiple architectures when installing dependencies [#5965](https://github.com/pnpm/pnpm/issues/5965).
+
+  You can now specify architectures for which you'd like to install optional dependencies, even if they don't match the architecture of the system running the install. Use the `supportedArchitectures` field in `package.json` to define your preferences.
+
+  For example, the following configuration tells pnpm to install optional dependencies for Windows x64:
+
+  ```json
+  {
+    "pnpm": {
+      "supportedArchitectures": {
+        "os": ["win32"],
+        "cpu": ["x64"]
+      }
+    }
+  }
+  ```
+
+  Whereas this configuration will have pnpm install optional dependencies for Windows, macOS, and the architecture of the system currently running the install. It includes artifacts for both x64 and arm64 CPUs:
+
+  ```json
+  {
+    "pnpm": {
+      "supportedArchitectures": {
+        "os": ["win32", "darwin", "current"],
+        "cpu": ["x64", "arm64"]
+      }
+    }
+  }
+  ```
+
+  Additionally, `supportedArchitectures` also supports specifying the `libc` of the system.
+
+### Patch Changes
+
+- Updated dependencies [43ce9e4a6]
+- Updated dependencies [6390033cd]
+  - @pnpm/package-is-installable@8.1.0
+  - @pnpm/store-controller-types@17.1.0
+  - @pnpm/types@9.4.0
+  - @pnpm/worker@0.3.6
+  - @pnpm/store.cafs@2.0.7
+  - @pnpm/fetcher-base@15.0.3
+  - @pnpm/core-loggers@9.0.4
+  - @pnpm/dependency-path@2.1.5
+  - @pnpm/read-package-json@8.0.5
+  - @pnpm/resolver-base@10.0.4
+  - @pnpm/pick-fetcher@2.0.1
+
+## 24.0.6
+
+### Patch Changes
+
+- @pnpm/worker@0.3.5
+
+## 24.0.5
+
+### Patch Changes
+
+- 01bc58e2c: Update ssri to v10.0.5.
+- Updated dependencies [01bc58e2c]
+- Updated dependencies [08b65ff78]
+  - @pnpm/store.cafs@2.0.6
+  - @pnpm/worker@0.3.4
+
+## 24.0.4
+
+### Patch Changes
+
+- @pnpm/worker@0.3.3
+
+## 24.0.3
+
+### Patch Changes
+
+- @pnpm/worker@0.3.2
+
+## 24.0.2
+
+### Patch Changes
+
+- Updated dependencies [d774a3196]
+  - @pnpm/types@9.3.0
+  - @pnpm/package-is-installable@8.0.5
+  - @pnpm/fetcher-base@15.0.2
+  - @pnpm/core-loggers@9.0.3
+  - @pnpm/dependency-path@2.1.4
+  - @pnpm/read-package-json@8.0.4
+  - @pnpm/resolver-base@10.0.3
+  - @pnpm/store.cafs@2.0.5
+  - @pnpm/store-controller-types@17.0.1
+  - @pnpm/worker@0.3.1
+  - @pnpm/pick-fetcher@2.0.1
+
+## 24.0.1
+
+### Patch Changes
+
+- Updated dependencies [f394cfccd]
+  - @pnpm/pick-fetcher@2.0.1
+
+## 24.0.0
+
+### Major Changes
+
+- 9caa33d53: `fromStore` replaced with `resolvedFrom`.
+
+### Patch Changes
+
+- Updated dependencies [9caa33d53]
+- Updated dependencies [9caa33d53]
+- Updated dependencies [9caa33d53]
+  - @pnpm/store-controller-types@17.0.0
+  - @pnpm/worker@0.3.0
+  - @pnpm/graceful-fs@3.2.0
+  - @pnpm/store.cafs@2.0.4
+  - @pnpm/fetcher-base@15.0.1
+
+## 23.0.1
+
+### Patch Changes
+
+- @pnpm/worker@0.2.1
+
+## 23.0.0
+
+### Patch Changes
+
+- Updated dependencies [03cdccc6e]
+- Updated dependencies [48dcd108c]
+  - @pnpm/store-controller-types@16.1.0
+  - @pnpm/worker@0.2.0
+  - @pnpm/store.cafs@2.0.3
+  - @pnpm/fetcher-base@15.0.1
+
+## 22.0.2
+
+### Patch Changes
+
+- Updated dependencies [b3947185c]
+  - @pnpm/store.cafs@2.0.2
+  - @pnpm/worker@0.1.2
+
+## 22.0.1
+
+### Patch Changes
+
+- Updated dependencies [b548f2f43]
+- Updated dependencies [4a1a9431d]
+  - @pnpm/store.cafs@2.0.1
+  - @pnpm/fetcher-base@15.0.1
+  - @pnpm/worker@0.1.1
+  - @pnpm/pick-fetcher@2.0.0
+  - @pnpm/store-controller-types@16.0.1
+
+## 22.0.0
+
+### Major Changes
+
+- 494f87544: Breaking changes to the API.
+- 083bbf590: Breaking changes to the API.
+
+### Patch Changes
+
+- Updated dependencies [0fd9e6a6c]
+- Updated dependencies [494f87544]
+- Updated dependencies [70b2830ac]
+- Updated dependencies [083bbf590]
+- Updated dependencies [083bbf590]
+- Updated dependencies [083bbf590]
+- Updated dependencies [083bbf590]
+  - @pnpm/store.cafs@2.0.0
+  - @pnpm/store-controller-types@16.0.0
+  - @pnpm/fetcher-base@15.0.0
+  - @pnpm/worker@0.1.0
+  - @pnpm/graceful-fs@3.1.0
+  - @pnpm/pick-fetcher@2.0.0
+
+## 21.1.0
+
+### Minor Changes
+
+- 92f42224c: New option added: `relinkLocalDirDeps`. It is `true` by default. When `false`, local directory dependencies are not relinked on repeat install.
+
 ## 21.0.12
 
 ### Patch Changes

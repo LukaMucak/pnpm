@@ -1,11 +1,12 @@
 import { DedupeCheckIssuesError, dedupeDiffCheck } from '@pnpm/dedupe.check'
-import { type Lockfile } from '@pnpm/lockfile-types'
+import { type LockfileObject } from '@pnpm/lockfile.types'
+import { type DepPath, type ProjectId } from '@pnpm/types'
 
 describe('dedupeDiffCheck', () => {
   it('should have no changes for same lockfile', () => {
-    const lockfile: Lockfile = {
+    const lockfile: LockfileObject = {
       importers: {
-        '.': {
+        ['.' as ProjectId]: {
           specifiers: {},
         },
       },
@@ -18,9 +19,9 @@ describe('dedupeDiffCheck', () => {
   })
 
   it('throws DedupeCheckIssuesError on changes', () => {
-    const before: Lockfile = {
+    const before: LockfileObject = {
       importers: {
-        'packages/a': {
+        ['packages/a' as ProjectId]: {
           specifiers: {
             'is-positive': '^3.0.0',
           },
@@ -28,7 +29,7 @@ describe('dedupeDiffCheck', () => {
             'is-positive': '3.0.0',
           },
         },
-        'packages/b': {
+        ['packages/b' as ProjectId]: {
           specifiers: {
             'is-positive': '^3.1.0',
           },
@@ -38,7 +39,7 @@ describe('dedupeDiffCheck', () => {
         },
       },
       packages: {
-        '/is-positive@3.0.0': {
+        ['is-positive@3.0.0' as DepPath]: {
           resolution: {
             integrity: 'sha512-JDkaKp5jWv24ZaFuYDKTcBrC/wBOHdjhzLDkgrrkJD/j7KqqXsGcAkex336qHoOFEajMy7bYqUgm0KH9/MzQvw==',
           },
@@ -46,7 +47,7 @@ describe('dedupeDiffCheck', () => {
             node: '>=0.10.0',
           },
         },
-        '/is-positive@3.1.0': {
+        ['is-positive@3.1.0' as DepPath]: {
           resolution: {
             integrity: 'sha1-hX21hKG6XRyymAUn/DtsQ103sP0=',
           },
@@ -58,9 +59,9 @@ describe('dedupeDiffCheck', () => {
       lockfileVersion: 'testLockfileVersion',
     }
 
-    const after: Lockfile = {
+    const after: LockfileObject = {
       importers: {
-        'packages/a': {
+        ['packages/a' as ProjectId]: {
           specifiers: {
             'is-positive': '^3.0.0',
           },
@@ -68,7 +69,7 @@ describe('dedupeDiffCheck', () => {
             'is-positive': '3.1.0',
           },
         },
-        'packages/b': {
+        ['packages/b' as ProjectId]: {
           specifiers: {
             'is-positive': '^3.1.0',
           },
@@ -78,7 +79,7 @@ describe('dedupeDiffCheck', () => {
         },
       },
       packages: {
-        '/is-positive@3.1.0': {
+        ['is-positive@3.1.0' as DepPath]: {
           resolution: {
             integrity: 'sha1-hX21hKG6XRyymAUn/DtsQ103sP0=',
           },

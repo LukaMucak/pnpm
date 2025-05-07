@@ -10,8 +10,13 @@
   ],
   "references": [
     {
+      "path": "../../network/fetch"
+    },
+    {
+      "path": "../../network/fetching-types"
+    },
+    {
       "path": "../resolver-base"
     }
-  ],
-  "composite": true
+  ]
 }

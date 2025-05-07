@@ -1,4 +1,5 @@
 import { type PnpmError } from '@pnpm/error'
+import { type ProjectRootDir } from '@pnpm/types'
 import {
   createWorkspaceSpecs,
   updateToWorkspacePackagesFromManifest,
@@ -10,35 +11,35 @@ const INCLUDE_ALL = {
   optionalDependencies: true,
 }
 
-const WORKSPACE_PACKAGES = {
-  bar: {
-    '100.0.0': {
-      dir: '',
+const WORKSPACE_PACKAGES = new Map([
+  ['bar', new Map([
+    ['100.0.0', {
+      rootDir: '' as ProjectRootDir,
       manifest: {
         name: 'foo',
         version: '100.0.0',
       },
-    },
-  },
-  foo: {
-    '100.0.0': {
-      dir: '',
+    }],
+  ])],
+  ['foo', new Map([
+    ['100.0.0', {
+      rootDir: '' as ProjectRootDir,
       manifest: {
         name: 'foo',
         version: '100.0.0',
       },
-    },
-  },
-  qar: {
-    '100.0.0': {
-      dir: '',
+    }],
+  ])],
+  ['qar', new Map([
+    ['100.0.0', {
+      rootDir: '' as ProjectRootDir,
       manifest: {
         name: 'foo',
         version: '100.0.0',
       },
-    },
-  },
-}
+    }],
+  ])],
+])
 
 test('updateToWorkspacePackagesFromManifest()', () => {
   const manifest = {
@@ -51,7 +52,7 @@ test('updateToWorkspacePackagesFromManifest()', () => {
       betta: '1.0.0',
     },
     optionalDependencies: {
-      hamma: '1.0.0',
+      hamma: '1.0.0', // cspell:disable-line
       qar: '1.0.0',
     },
   }
@@ -72,7 +73,7 @@ test('updateToWorkspacePackagesFromManifest()', () => {
 })
 
 test('createWorkspaceSpecs', () => {
-  expect(createWorkspaceSpecs(['bar', 'foo@2', 'qar@workspace:3'], WORKSPACE_PACKAGES)).toStrictEqual(['bar@workspace:>=0.0.0', 'foo@workspace:2', 'qar@workspace:3'])
+  expect(createWorkspaceSpecs(['bar', 'foo@2', 'qar@workspace:3'], WORKSPACE_PACKAGES)).toStrictEqual(['bar@workspace:*', 'foo@workspace:2', 'qar@workspace:3'])
   let err!: PnpmError
   try {
     createWorkspaceSpecs(['express'], WORKSPACE_PACKAGES)

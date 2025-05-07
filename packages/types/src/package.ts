@@ -1,3 +1,5 @@
+import { type ExecutionEnv } from './env'
+
 export type Dependencies = Record<string, string>
 
 export type PackageBin = string | { [commandName: string]: string }
@@ -70,22 +72,28 @@ export interface TypesVersions {
 export interface BaseManifest {
   name?: string
   version?: string
+  type?: string
   bin?: PackageBin
   description?: string
   directories?: {
     bin?: string
   }
   files?: string[]
+  funding?: string
   dependencies?: Dependencies
   devDependencies?: Dependencies
   optionalDependencies?: Dependencies
   peerDependencies?: Dependencies
   peerDependenciesMeta?: PeerDependenciesMeta
   dependenciesMeta?: DependenciesMeta
-  bundleDependencies?: string[]
-  bundledDependencies?: string[]
+  bundleDependencies?: string[] | boolean
+  bundledDependencies?: string[] | boolean
   homepage?: string
   repository?: string | { url: string }
+  bugs?: string | {
+    url?: string
+    email?: string
+  }
   scripts?: PackageScripts
   config?: object
   engines?: {
@@ -106,9 +114,14 @@ export interface BaseManifest {
   keywords?: string[]
   author?: string
   license?: string
+  exports?: Record<string, string>
+  imports?: Record<string, unknown>
 }
 
-export type DependencyManifest = BaseManifest & Required<Pick<BaseManifest, 'name' | 'version'>>
+export interface DependencyManifest extends BaseManifest {
+  name: string
+  version: string
+}
 
 export type PackageExtension = Pick<BaseManifest, 'dependencies' | 'optionalDependencies' | 'peerDependencies' | 'peerDependenciesMeta'>
 
@@ -120,29 +133,51 @@ export interface PeerDependencyRules {
 
 export type AllowedDeprecatedVersions = Record<string, string>
 
-export type ProjectManifest = BaseManifest & {
-  workspaces?: string[]
-  pnpm?: {
-    neverBuiltDependencies?: string[]
-    onlyBuiltDependencies?: string[]
-    overrides?: Record<string, string>
-    packageExtensions?: Record<string, PackageExtension>
-    peerDependencyRules?: PeerDependencyRules
-    allowedDeprecatedVersions?: AllowedDeprecatedVersions
-    allowNonAppliedPatches?: boolean
-    patchedDependencies?: Record<string, string>
-    updateConfig?: {
-      ignoreDependencies?: string[]
-    }
-    auditConfig?: {
-      ignoreCves?: string[]
-    }
-    requiredScripts?: string[]
+export type ConfigDependencies = Record<string, string>
+
+export interface AuditConfig {
+  ignoreCves?: string[]
+  ignoreGhsas?: string[]
+}
+
+export interface PnpmSettings {
+  configDependencies?: ConfigDependencies
+  neverBuiltDependencies?: string[]
+  onlyBuiltDependencies?: string[]
+  onlyBuiltDependenciesFile?: string
+  ignoredBuiltDependencies?: string[]
+  overrides?: Record<string, string>
+  packageExtensions?: Record<string, PackageExtension>
+  ignoredOptionalDependencies?: string[]
+  peerDependencyRules?: PeerDependencyRules
+  allowedDeprecatedVersions?: AllowedDeprecatedVersions
+  allowNonAppliedPatches?: boolean // deprecated: use allowUnusedPatches instead
+  allowUnusedPatches?: boolean
+  ignorePatchFailures?: boolean
+  patchedDependencies?: Record<string, string>
+  updateConfig?: {
+    ignoreDependencies?: string[]
   }
+  auditConfig?: AuditConfig
+  requiredScripts?: string[]
+  supportedArchitectures?: SupportedArchitectures
+  executionEnv?: ExecutionEnv
+}
+
+export interface ProjectManifest extends BaseManifest {
+  packageManager?: string
+  workspaces?: string[]
+  pnpm?: PnpmSettings
   private?: boolean
   resolutions?: Record<string, string>
 }
 
-export type PackageManifest = DependencyManifest & {
+export interface PackageManifest extends DependencyManifest {
   deprecated?: string
+}
+
+export interface SupportedArchitectures {
+  os?: string[]
+  cpu?: string[]
+  libc?: string[]
 }

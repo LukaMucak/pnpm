@@ -1,5 +1,162 @@
 # @pnpm/core-loggers
 
+## 1001.0.0
+
+### Major Changes
+
+- 8a9f3a4: `pref` renamed to `bareSpecifier`.
+
+### Patch Changes
+
+- Updated dependencies [8a9f3a4]
+- Updated dependencies [5b73df1]
+  - @pnpm/logger@1001.0.0
+  - @pnpm/types@1000.5.0
+
+## 1000.2.0
+
+### Minor Changes
+
+- 750ae7d: Now you can use the `pnpm add` command with the `--config` flag to install new configurational dependencies [#9377](https://github.com/pnpm/pnpm/pull/9377).
+
+### Patch Changes
+
+- Updated dependencies [750ae7d]
+  - @pnpm/types@1000.4.0
+
+## 1000.1.5
+
+### Patch Changes
+
+- Updated dependencies [5f7be64]
+- Updated dependencies [5f7be64]
+  - @pnpm/types@1000.3.0
+
+## 1000.1.4
+
+### Patch Changes
+
+- Updated dependencies [a5e4965]
+  - @pnpm/types@1000.2.1
+
+## 1000.1.3
+
+### Patch Changes
+
+- Updated dependencies [8fcc221]
+  - @pnpm/types@1000.2.0
+
+## 1000.1.2
+
+### Patch Changes
+
+- Updated dependencies [b562deb]
+  - @pnpm/types@1000.1.1
+
+## 1000.1.1
+
+### Patch Changes
+
+- Updated dependencies [9591a18]
+  - @pnpm/types@1000.1.0
+
+## 1000.1.0
+
+### Minor Changes
+
+- 516c4b3: Add new logger for ignored scripts.
+
+## 10.0.7
+
+### Patch Changes
+
+- Updated dependencies [d500d9f]
+  - @pnpm/types@12.2.0
+
+## 10.0.6
+
+### Patch Changes
+
+- Updated dependencies [7ee59a1]
+  - @pnpm/types@12.1.0
+
+## 10.0.5
+
+### Patch Changes
+
+- Updated dependencies [cb006df]
+  - @pnpm/types@12.0.0
+
+## 10.0.4
+
+### Patch Changes
+
+- Updated dependencies [0ef168b]
+  - @pnpm/types@11.1.0
+
+## 10.0.3
+
+### Patch Changes
+
+- Updated dependencies [dd00eeb]
+- Updated dependencies
+  - @pnpm/types@11.0.0
+
+## 10.0.2
+
+### Patch Changes
+
+- Updated dependencies [13e55b2]
+  - @pnpm/types@10.1.1
+
+## 10.0.1
+
+### Patch Changes
+
+- Updated dependencies [45f4262]
+  - @pnpm/types@10.1.0
+
+## 10.0.0
+
+### Major Changes
+
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+
+### Patch Changes
+
+- Updated dependencies [7733f3a]
+- Updated dependencies [43cdd87]
+- Updated dependencies [730929e]
+  - @pnpm/types@10.0.0
+
+## 9.0.6
+
+### Patch Changes
+
+- Updated dependencies [4d34684f1]
+  - @pnpm/types@9.4.2
+
+## 9.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @pnpm/types@9.4.1
+
+## 9.0.4
+
+### Patch Changes
+
+- Updated dependencies [43ce9e4a6]
+  - @pnpm/types@9.4.0
+
+## 9.0.3
+
+### Patch Changes
+
+- Updated dependencies [d774a3196]
+  - @pnpm/types@9.3.0
+
 ## 9.0.2
 
 ### Patch Changes

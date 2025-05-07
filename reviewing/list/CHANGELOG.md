@@ -1,5 +1,409 @@
 # @pnpm/list
 
+## 1000.0.16
+
+### Patch Changes
+
+- Updated dependencies [5b73df1]
+  - @pnpm/types@1000.5.0
+  - @pnpm/reviewing.dependencies-hierarchy@1001.0.13
+  - @pnpm/read-package-json@1000.0.8
+  - @pnpm/read-project-manifest@1000.0.10
+
+## 1000.0.15
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@1001.0.12
+
+## 1000.0.14
+
+### Patch Changes
+
+- Updated dependencies [750ae7d]
+  - @pnpm/types@1000.4.0
+  - @pnpm/read-package-json@1000.0.7
+  - @pnpm/read-project-manifest@1000.0.9
+  - @pnpm/reviewing.dependencies-hierarchy@1001.0.11
+
+## 1000.0.13
+
+### Patch Changes
+
+- Updated dependencies [5f7be64]
+- Updated dependencies [5f7be64]
+  - @pnpm/types@1000.3.0
+  - @pnpm/read-package-json@1000.0.6
+  - @pnpm/read-project-manifest@1000.0.8
+  - @pnpm/reviewing.dependencies-hierarchy@1001.0.10
+
+## 1000.0.12
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@1001.0.9
+
+## 1000.0.11
+
+### Patch Changes
+
+- Updated dependencies [58d8597]
+  - @pnpm/crypto.polyfill@1000.1.0
+  - @pnpm/reviewing.dependencies-hierarchy@1001.0.8
+
+## 1000.0.10
+
+### Patch Changes
+
+- Updated dependencies [a5e4965]
+  - @pnpm/types@1000.2.1
+  - @pnpm/read-package-json@1000.0.5
+  - @pnpm/read-project-manifest@1000.0.7
+  - @pnpm/reviewing.dependencies-hierarchy@1001.0.7
+
+## 1000.0.9
+
+### Patch Changes
+
+- Updated dependencies [8fcc221]
+  - @pnpm/types@1000.2.0
+  - @pnpm/read-package-json@1000.0.4
+  - @pnpm/read-project-manifest@1000.0.6
+  - @pnpm/reviewing.dependencies-hierarchy@1001.0.6
+
+## 1000.0.8
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@1001.0.5
+
+## 1000.0.7
+
+### Patch Changes
+
+- Updated dependencies [1e229d7]
+  - @pnpm/read-project-manifest@1000.0.5
+
+## 1000.0.6
+
+### Patch Changes
+
+- Updated dependencies [b562deb]
+  - @pnpm/types@1000.1.1
+  - @pnpm/reviewing.dependencies-hierarchy@1001.0.4
+  - @pnpm/read-package-json@1000.0.3
+  - @pnpm/read-project-manifest@1000.0.4
+
+## 1000.0.5
+
+### Patch Changes
+
+- Updated dependencies [e050221]
+  - @pnpm/read-project-manifest@1000.0.3
+
+## 1000.0.4
+
+### Patch Changes
+
+- Updated dependencies [9591a18]
+  - @pnpm/types@1000.1.0
+  - @pnpm/read-package-json@1000.0.2
+  - @pnpm/read-project-manifest@1000.0.2
+  - @pnpm/reviewing.dependencies-hierarchy@1001.0.3
+
+## 1000.0.3
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@1001.0.2
+
+## 1000.0.2
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@1001.0.1
+
+## 1000.0.1
+
+### Patch Changes
+
+- Updated dependencies [a76da0c]
+  - @pnpm/reviewing.dependencies-hierarchy@1001.0.0
+  - @pnpm/read-package-json@1000.0.1
+  - @pnpm/read-project-manifest@1000.0.1
+
+## 10.2.3
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@3.2.3
+- @pnpm/read-package-json@9.0.10
+- @pnpm/read-project-manifest@6.0.10
+
+## 10.2.2
+
+### Patch Changes
+
+- 222d10a: Use `crypto.hash`, when available, for improved performance [#8629](https://github.com/pnpm/pnpm/pull/8629).
+- Updated dependencies [222d10a]
+- Updated dependencies [222d10a]
+  - @pnpm/crypto.polyfill@1.0.0
+  - @pnpm/reviewing.dependencies-hierarchy@3.2.2
+
+## 10.2.1
+
+### Patch Changes
+
+- 44b8935: Fixed an issue where `pnpm list --json pkg` showed `"private": false` for a private package [#8519](https://github.com/pnpm/pnpm/issues/8519).
+  - @pnpm/reviewing.dependencies-hierarchy@3.2.1
+  - @pnpm/read-package-json@9.0.9
+  - @pnpm/read-project-manifest@6.0.9
+
+## 10.2.0
+
+### Minor Changes
+
+- 3af07cb: Support for a new CLI flag, `--exclude-peers`, added to the `list` and `why` commands. When `--exclude-peers` is used, peer dependencies are not printed in the results, but dependencies of peer dependencies are still scanned [#8506](https://github.com/pnpm/pnpm/pull/8506).
+
+### Patch Changes
+
+- Updated dependencies [3af07cb]
+- Updated dependencies [d500d9f]
+  - @pnpm/reviewing.dependencies-hierarchy@3.2.0
+  - @pnpm/types@12.2.0
+  - @pnpm/read-package-json@9.0.8
+  - @pnpm/read-project-manifest@6.0.8
+
+## 10.1.10
+
+### Patch Changes
+
+- Updated dependencies [7ee59a1]
+  - @pnpm/types@12.1.0
+  - @pnpm/read-package-json@9.0.7
+  - @pnpm/read-project-manifest@6.0.7
+  - @pnpm/reviewing.dependencies-hierarchy@3.1.10
+
+## 10.1.9
+
+### Patch Changes
+
+- Updated dependencies [cb006df]
+  - @pnpm/types@12.0.0
+  - @pnpm/read-package-json@9.0.6
+  - @pnpm/read-project-manifest@6.0.6
+  - @pnpm/reviewing.dependencies-hierarchy@3.1.9
+
+## 10.1.8
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@3.1.8
+
+## 10.1.7
+
+### Patch Changes
+
+- Updated dependencies [0ef168b]
+  - @pnpm/types@11.1.0
+  - @pnpm/read-package-json@9.0.5
+  - @pnpm/read-project-manifest@6.0.5
+  - @pnpm/reviewing.dependencies-hierarchy@3.1.7
+
+## 10.1.6
+
+### Patch Changes
+
+- Updated dependencies [dd00eeb]
+- Updated dependencies
+  - @pnpm/types@11.0.0
+  - @pnpm/read-package-json@9.0.4
+  - @pnpm/read-project-manifest@6.0.4
+  - @pnpm/reviewing.dependencies-hierarchy@3.1.6
+
+## 10.1.5
+
+### Patch Changes
+
+- Updated dependencies [13e55b2]
+  - @pnpm/types@10.1.1
+  - @pnpm/read-package-json@9.0.3
+  - @pnpm/read-project-manifest@6.0.3
+  - @pnpm/reviewing.dependencies-hierarchy@3.1.5
+
+## 10.1.4
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@3.1.4
+
+## 10.1.3
+
+### Patch Changes
+
+- Updated dependencies [45f4262]
+  - @pnpm/types@10.1.0
+  - @pnpm/read-package-json@9.0.2
+  - @pnpm/read-project-manifest@6.0.2
+  - @pnpm/reviewing.dependencies-hierarchy@3.1.3
+
+## 10.1.2
+
+### Patch Changes
+
+- @pnpm/read-package-json@9.0.1
+- @pnpm/read-project-manifest@6.0.1
+- @pnpm/reviewing.dependencies-hierarchy@3.1.2
+
+## 10.1.1
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@3.1.1
+
+## 10.1.0
+
+### Minor Changes
+
+- 9719a42: New setting called `virtual-store-dir-max-length` added to modify the maximum allowed length of the directories inside `node_modules/.pnpm`. The default length is set to 120 characters. This setting is particularly useful on Windows, where there is a limit to the maximum length of a file path [#7355](https://github.com/pnpm/pnpm/issues/7355).
+
+### Patch Changes
+
+- Updated dependencies [9719a42]
+  - @pnpm/reviewing.dependencies-hierarchy@3.1.0
+
+## 10.0.2
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@3.0.2
+
+## 10.0.1
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@3.0.1
+
+## 10.0.0
+
+### Major Changes
+
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+
+### Patch Changes
+
+- Updated dependencies [7733f3a]
+- Updated dependencies [43cdd87]
+- Updated dependencies [d381a60]
+- Updated dependencies [730929e]
+  - @pnpm/types@10.0.0
+  - @pnpm/read-project-manifest@6.0.0
+  - @pnpm/reviewing.dependencies-hierarchy@3.0.0
+  - @pnpm/read-package-json@9.0.0
+
+## 9.1.10
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@2.1.9
+
+## 9.1.9
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@2.1.8
+
+## 9.1.8
+
+### Patch Changes
+
+- 09f610349: `pnpm list --parseable` should not print the same dependency multiple times [#7429](https://github.com/pnpm/pnpm/issues/7429).
+- Updated dependencies [4d34684f1]
+  - @pnpm/types@9.4.2
+  - @pnpm/read-package-json@8.0.7
+  - @pnpm/read-project-manifest@5.0.10
+  - @pnpm/reviewing.dependencies-hierarchy@2.1.7
+
+## 9.1.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @pnpm/types@9.4.1
+  - @pnpm/read-package-json@8.0.6
+  - @pnpm/read-project-manifest@5.0.9
+  - @pnpm/reviewing.dependencies-hierarchy@2.1.6
+
+## 9.1.6
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@2.1.5
+
+## 9.1.5
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@2.1.4
+
+## 9.1.4
+
+### Patch Changes
+
+- @pnpm/reviewing.dependencies-hierarchy@2.1.3
+
+## 9.1.3
+
+### Patch Changes
+
+- Updated dependencies [43ce9e4a6]
+  - @pnpm/types@9.4.0
+  - @pnpm/read-package-json@8.0.5
+  - @pnpm/read-project-manifest@5.0.8
+  - @pnpm/reviewing.dependencies-hierarchy@2.1.2
+
+## 9.1.2
+
+### Patch Changes
+
+- Updated dependencies [d774a3196]
+  - @pnpm/types@9.3.0
+  - @pnpm/read-package-json@8.0.4
+  - @pnpm/read-project-manifest@5.0.7
+  - @pnpm/reviewing.dependencies-hierarchy@2.1.1
+
+## 9.1.1
+
+### Patch Changes
+
+- 40798fb1c: Fix memory error in `pnpm why` when the dependencies tree is too big, the command will now prune the tree to just 10 end leafs and now supports `--depth` argument.
+
+## 9.1.0
+
+### Minor Changes
+
+- 101c97ecb: Export the renderer functions.
+
+### Patch Changes
+
+- Updated dependencies [101c97ecb]
+  - @pnpm/reviewing.dependencies-hierarchy@2.1.0
+
+## 9.0.12
+
+### Patch Changes
+
+- @pnpm/read-project-manifest@5.0.6
+- @pnpm/reviewing.dependencies-hierarchy@2.0.11
+
+## 9.0.11
+
+### Patch Changes
+
+- f73eeac06: Don't fail when no `package.json` is found.
+  - @pnpm/read-project-manifest@5.0.5
+  - @pnpm/reviewing.dependencies-hierarchy@2.0.11
+
 ## 9.0.10
 
 ### Patch Changes

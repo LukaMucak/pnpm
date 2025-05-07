@@ -1,10 +1,12 @@
+import assert from 'assert'
 import path from 'path'
+import util from 'util'
 import { calcDepState, type DepsStateCache } from '@pnpm/calc-dep-state'
-import { skippedOptionalDependencyLogger } from '@pnpm/core-loggers'
+import { skippedOptionalDependencyLogger, ignoredScriptsLogger } from '@pnpm/core-loggers'
 import { runPostinstallHooks } from '@pnpm/lifecycle'
 import { linkBins, linkBinsOfPackages } from '@pnpm/link-bins'
 import { logger } from '@pnpm/logger'
-import { hardLinkDir } from '@pnpm/fs.hard-link-dir'
+import { hardLinkDir } from '@pnpm/worker'
 import { readPackageJsonFromDir, safeReadPackageJsonFromDir } from '@pnpm/read-package-json'
 import { type StoreController } from '@pnpm/store-controller-types'
 import { applyPatchToDir } from '@pnpm/patching.apply-patch'
@@ -16,10 +18,13 @@ import { buildSequence, type DependenciesGraph, type DependenciesGraphNode } fro
 
 export type { DepsStateCache }
 
-export async function buildModules (
-  depGraph: DependenciesGraph,
-  rootDepPaths: string[],
+export async function buildModules<T extends string> (
+  depGraph: DependenciesGraph<T>,
+  rootDepPaths: T[],
   opts: {
+    allowBuild?: (pkgName: string) => boolean
+    ignorePatchFailures?: boolean
+    ignoredBuiltDependencies?: string[]
     childConcurrency?: number
     depsToBuild?: Set<string>
     depsStateCache: DepsStateCache
@@ -41,7 +46,8 @@ export async function buildModules (
     rootModulesDir: string
     hoistedLocations?: Record<string, string[]>
   }
-) {
+): Promise<{ ignoredBuilds?: string[] }> {
+  if (!rootDepPaths.length) return {}
   const warn = (message: string) => {
     logger.warn({ message, prefix: opts.lockfileDir })
   }
@@ -52,27 +58,53 @@ export async function buildModules (
     builtHoistedDeps: opts.hoistedLocations ? {} : undefined,
     warn,
   }
-  const chunks = buildSequence(depGraph, rootDepPaths)
+  const chunks = buildSequence<T>(depGraph, rootDepPaths)
+  if (!chunks.length) return {}
+  const ignoredPkgs = new Set<string>()
+  const allowBuild = opts.allowBuild ?? (() => true)
   const groups = chunks.map((chunk) => {
     chunk = chunk.filter((depPath) => {
       const node = depGraph[depPath]
-      return (node.requiresBuild || node.patchFile != null) && !node.isBuilt
+      return (node.requiresBuild || node.patch != null) && !node.isBuilt
     })
     if (opts.depsToBuild != null) {
       chunk = chunk.filter((depPath) => opts.depsToBuild!.has(depPath))
     }
 
-    return chunk.map((depPath: string) =>
-      async () => buildDependency(depPath, depGraph, buildDepOpts)
+    return chunk.map((depPath) =>
+      () => {
+        let ignoreScripts = Boolean(buildDepOpts.ignoreScripts)
+        if (!ignoreScripts) {
+          if (depGraph[depPath].requiresBuild && !allowBuild(depGraph[depPath].name)) {
+            ignoredPkgs.add(depGraph[depPath].name)
+            ignoreScripts = true
+          }
+        }
+        return buildDependency(depPath, depGraph, {
+          ...buildDepOpts,
+          ignoreScripts,
+        })
+      }
     )
   })
   await runGroups(opts.childConcurrency ?? 4, groups)
+  if (opts.ignoredBuiltDependencies?.length) {
+    for (const ignoredBuild of opts.ignoredBuiltDependencies) {
+      // We already ignore the build of this dependency.
+      // No need to report it.
+      ignoredPkgs.delete(ignoredBuild)
+    }
+  }
+  const packageNames = Array.from(ignoredPkgs)
+  ignoredScriptsLogger.debug({ packageNames })
+  return { ignoredBuilds: packageNames }
 }
 
-async function buildDependency (
-  depPath: string,
-  depGraph: DependenciesGraph,
+async function buildDependency<T extends string> (
+  depPath: T,
+  depGraph: DependenciesGraph<T>,
   opts: {
+    ignorePatchFailures?: boolean
     extraBinPaths?: string[]
     extraNodePaths?: string[]
     extraEnv?: Record<string, string>
@@ -93,8 +125,9 @@ async function buildDependency (
     builtHoistedDeps?: Record<string, DeferredPromise<void>>
     warn: (message: string) => void
   }
-) {
+): Promise<void> {
   const depNode = depGraph[depPath]
+  if (!depNode.filesIndexFile) return
   if (opts.builtHoistedDeps) {
     if (opts.builtHoistedDeps[depNode.depPath]) {
       await opts.builtHoistedDeps[depNode.depPath].promise
@@ -104,9 +137,13 @@ async function buildDependency (
   }
   try {
     await linkBinsOfDependencies(depNode, depGraph, opts)
-    const isPatched = depNode.patchFile?.path != null
-    if (isPatched) {
-      applyPatchToDir({ patchedDir: depNode.dir, patchFilePath: depNode.patchFile!.path })
+    let isPatched = false
+    if (depNode.patch) {
+      const { file, strict } = depNode.patch
+      // `strict` is a legacy property which was kept to preserve backward compatibility.
+      // Once a major version of pnpm is released, `strict` should be removed completely.
+      const allowFailure: boolean = opts.ignorePatchFailures ?? !strict
+      isPatched = applyPatchToDir({ allowFailure, patchedDir: depNode.dir, patchFilePath: file.path })
     }
     const hasSideEffects = !opts.ignoreScripts && await runPostinstallHooks({
       depPath,
@@ -125,15 +162,16 @@ async function buildDependency (
     if ((isPatched || hasSideEffects) && opts.sideEffectsCacheWrite) {
       try {
         const sideEffectsCacheKey = calcDepState(depGraph, opts.depsStateCache, depPath, {
-          patchFileHash: depNode.patchFile?.hash,
+          patchFileHash: depNode.patch?.file.hash,
           isBuilt: hasSideEffects,
         })
         await opts.storeController.upload(depNode.dir, {
           sideEffectsCacheKey,
           filesIndexFile: depNode.filesIndexFile,
         })
-      } catch (err: any) { // eslint-disable-line
-        if (err.statusCode === 403) {
+      } catch (err: unknown) {
+        assert(util.types.isNativeError(err))
+        if (err && 'statusCode' in err && err.statusCode === 403) {
           logger.warn({
             message: `The store server disabled upload requests, could not upload ${depNode.dir}`,
             prefix: opts.lockfileDir,
@@ -147,7 +185,8 @@ async function buildDependency (
         }
       }
     }
-  } catch (err: any) { // eslint-disable-line
+  } catch (err: unknown) {
+    assert(util.types.isNativeError(err))
     if (depNode.optional) {
       // TODO: add parents field to the log
       const pkg = await readPackageJsonFromDir(path.join(depNode.dir)) as DependencyManifest
@@ -179,17 +218,17 @@ async function buildDependency (
   }
 }
 
-export async function linkBinsOfDependencies (
-  depNode: DependenciesGraphNode,
-  depGraph: DependenciesGraph,
+export async function linkBinsOfDependencies<T extends string> (
+  depNode: DependenciesGraphNode<T>,
+  depGraph: DependenciesGraph<T>,
   opts: {
     extraNodePaths?: string[]
     optional: boolean
     preferSymlinkedExecutables?: boolean
     warn: (message: string) => void
   }
-) {
-  const childrenToLink: Record<string, string> = opts.optional
+): Promise<void> {
+  const childrenToLink: Record<string, T> = opts.optional
     ? depNode.children
     : pickBy((child, childAlias) => !depNode.optionalDependencies.has(childAlias), depNode.children)
 

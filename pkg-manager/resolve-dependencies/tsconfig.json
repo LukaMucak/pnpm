@@ -10,16 +10,25 @@
   ],
   "references": [
     {
-      "path": "../../config/pick-registry-for-package"
+      "path": "../../catalogs/resolver"
     },
     {
-      "path": "../../lockfile/lockfile-types"
+      "path": "../../catalogs/types"
     },
     {
-      "path": "../../lockfile/lockfile-utils"
+      "path": "../../fetching/pick-fetcher"
     },
     {
-      "path": "../../lockfile/prune-lockfile"
+      "path": "../../lockfile/preferred-versions"
+    },
+    {
+      "path": "../../lockfile/pruner"
+    },
+    {
+      "path": "../../lockfile/types"
+    },
+    {
+      "path": "../../lockfile/utils"
     },
     {
       "path": "../../packages/constants"
@@ -34,10 +43,16 @@
       "path": "../../packages/error"
     },
     {
+      "path": "../../packages/logger"
+    },
+    {
       "path": "../../packages/types"
     },
     {
-      "path": "../../packages/which-version-is-pinned"
+      "path": "../../patching/config"
+    },
+    {
+      "path": "../../patching/types"
     },
     {
       "path": "../../pkg-manifest/manifest-utils"
@@ -52,8 +67,13 @@
       "path": "../../resolving/resolver-base"
     },
     {
+      "path": "../../semver/peer-range"
+    },
+    {
       "path": "../../store/store-controller-types"
+    },
+    {
+      "path": "../../workspace/spec-parser"
     }
-  ],
-  "composite": true
+  ]
 }

@@ -13,14 +13,25 @@
       "path": "../../__utils__/prepare"
     },
     {
+      "path": "../../catalogs/config"
+    },
+    {
+      "path": "../../catalogs/resolver"
+    },
+    {
+      "path": "../../catalogs/types"
+    },
+    {
       "path": "../../packages/error"
     },
     {
       "path": "../../packages/types"
     },
     {
+      "path": "../../resolving/jsr-specifier-parser"
+    },
+    {
       "path": "../read-project-manifest"
     }
-  ],
-  "composite": true
+  ]
 }

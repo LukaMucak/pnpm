@@ -5,12 +5,13 @@ import {
   createCafs,
   getFilePathByModeInCafs,
 } from '@pnpm/store.cafs'
-import type { Cafs, PackageFilesResponse } from '@pnpm/cafs-types'
+import { type Cafs, type PackageFilesResponse, type PackageFiles, type SideEffectsDiff } from '@pnpm/cafs-types'
 import { createIndexedPkgImporter } from '@pnpm/fs.indexed-pkg-importer'
 import {
   type ImportIndexedPackage,
+  type ImportIndexedPackageAsync,
   type ImportPackageFunction,
-  type PackageFileInfo,
+  type ImportPackageFunctionAsync,
 } from '@pnpm/store-controller-types'
 import memoize from 'mem'
 import pathTemp from 'path-temp'
@@ -18,27 +19,59 @@ import mapValues from 'ramda/src/map'
 
 export { type CafsLocker }
 
+export function createPackageImporterAsync (
+  opts: {
+    importIndexedPackage?: ImportIndexedPackageAsync
+    packageImportMethod?: 'auto' | 'hardlink' | 'copy' | 'clone' | 'clone-or-copy'
+    storeDir: string
+  }
+): ImportPackageFunctionAsync {
+  const cachedImporterCreator = opts.importIndexedPackage
+    ? () => opts.importIndexedPackage!
+    : memoize(createIndexedPkgImporter)
+  const packageImportMethod = opts.packageImportMethod
+  const gfm = getFlatMap.bind(null, opts.storeDir)
+  return async (to, opts) => {
+    const { filesMap, isBuilt } = gfm(opts.filesResponse, opts.sideEffectsCacheKey)
+    const willBeBuilt = !isBuilt && opts.requiresBuild
+    const pkgImportMethod = willBeBuilt
+      ? 'clone-or-copy'
+      : (opts.filesResponse.packageImportMethod ?? packageImportMethod)
+    const impPkg = cachedImporterCreator(pkgImportMethod)
+    const importMethod = await impPkg(to, {
+      disableRelinkLocalDirDeps: opts.disableRelinkLocalDirDeps,
+      filesMap,
+      resolvedFrom: opts.filesResponse.resolvedFrom,
+      force: opts.force,
+      keepModulesDir: Boolean(opts.keepModulesDir),
+    })
+    return { importMethod, isBuilt }
+  }
+}
+
 function createPackageImporter (
   opts: {
     importIndexedPackage?: ImportIndexedPackage
     packageImportMethod?: 'auto' | 'hardlink' | 'copy' | 'clone' | 'clone-or-copy'
-    cafsDir: string
+    storeDir: string
   }
 ): ImportPackageFunction {
   const cachedImporterCreator = opts.importIndexedPackage
     ? () => opts.importIndexedPackage!
     : memoize(createIndexedPkgImporter)
   const packageImportMethod = opts.packageImportMethod
-  const gfm = getFlatMap.bind(null, opts.cafsDir)
-  return async (to, opts) => {
+  const gfm = getFlatMap.bind(null, opts.storeDir)
+  return (to, opts) => {
     const { filesMap, isBuilt } = gfm(opts.filesResponse, opts.sideEffectsCacheKey)
-    const pkgImportMethod = (opts.requiresBuild && !isBuilt)
+    const willBeBuilt = !isBuilt && opts.requiresBuild
+    const pkgImportMethod = willBeBuilt
       ? 'clone-or-copy'
       : (opts.filesResponse.packageImportMethod ?? packageImportMethod)
     const impPkg = cachedImporterCreator(pkgImportMethod)
-    const importMethod = await impPkg(to, {
+    const importMethod = impPkg(to, {
+      disableRelinkLocalDirDeps: opts.disableRelinkLocalDirDeps,
       filesMap,
-      fromStore: opts.filesResponse.fromStore,
+      resolvedFrom: opts.filesResponse.resolvedFrom,
       force: opts.force,
       keepModulesDir: Boolean(opts.keepModulesDir),
     })
@@ -47,27 +80,36 @@ function createPackageImporter (
 }
 
 function getFlatMap (
-  cafsDir: string,
+  storeDir: string,
   filesResponse: PackageFilesResponse,
   targetEngine?: string
 ): { filesMap: Record<string, string>, isBuilt: boolean } {
-  if (filesResponse.local) {
+  let isBuilt!: boolean
+  let filesIndex!: PackageFiles
+  if (targetEngine && ((filesResponse.sideEffects?.[targetEngine]) != null)) {
+    filesIndex = applySideEffectsDiff(filesResponse.filesIndex as PackageFiles, filesResponse.sideEffects?.[targetEngine])
+    isBuilt = true
+  } else if (!filesResponse.unprocessed) {
     return {
       filesMap: filesResponse.filesIndex,
       isBuilt: false,
     }
-  }
-  let isBuilt!: boolean
-  let filesIndex!: Record<string, PackageFileInfo>
-  if (targetEngine && ((filesResponse.sideEffects?.[targetEngine]) != null)) {
-    filesIndex = filesResponse.sideEffects?.[targetEngine]
-    isBuilt = true
   } else {
     filesIndex = filesResponse.filesIndex
     isBuilt = false
   }
-  const filesMap = mapValues(({ integrity, mode }) => getFilePathByModeInCafs(cafsDir, integrity, mode), filesIndex)
+  const filesMap = mapValues(({ integrity, mode }) => getFilePathByModeInCafs(storeDir, integrity, mode), filesIndex)
   return { filesMap, isBuilt }
+}
+
+function applySideEffectsDiff (baseFiles: PackageFiles, { added, deleted }: SideEffectsDiff): PackageFiles {
+  const filesWithSideEffects: PackageFiles = { ...added }
+  for (const fileName in baseFiles) {
+    if (!deleted?.includes(fileName) && !filesWithSideEffects[fileName]) {
+      filesWithSideEffects[fileName] = baseFiles[fileName]
+    }
+  }
+  return filesWithSideEffects
 }
 
 export function createCafsStore (
@@ -79,16 +121,15 @@ export function createCafsStore (
     cafsLocker?: CafsLocker
   }
 ): Cafs {
-  const cafsDir = path.join(storeDir, 'files')
   const baseTempDir = path.join(storeDir, 'tmp')
   const importPackage = createPackageImporter({
     importIndexedPackage: opts?.importPackage,
     packageImportMethod: opts?.packageImportMethod,
-    cafsDir,
+    storeDir,
   })
   return {
-    ...createCafs(cafsDir, opts),
-    cafsDir,
+    ...createCafs(storeDir, opts),
+    storeDir,
     importPackage,
     tempDir: async () => {
       const tmpDir = pathTemp(baseTempDir)

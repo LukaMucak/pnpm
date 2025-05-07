@@ -5,13 +5,14 @@ import {
   mutateModulesInSingleProject,
 } from '@pnpm/core'
 import { addDistTag } from '@pnpm/registry-mock'
+import { type ProjectRootDir } from '@pnpm/types'
 import { testDefaults } from '../utils'
 
 test('save to package.json (is-positive@^1.0.0)', async () => {
   const project = prepareEmpty()
-  const manifest = await addDependenciesToPackage({}, ['is-positive@^1.0.0'], await testDefaults({ save: true }))
+  const { updatedManifest: manifest } = await addDependenciesToPackage({}, ['is-positive@^1.0.0'], testDefaults({ save: true }))
 
-  await project.has('is-positive')
+  project.has('is-positive')
 
   expect(manifest.dependencies).toStrictEqual({ 'is-positive': '^1.0.0' })
 })
@@ -19,29 +20,29 @@ test('save to package.json (is-positive@^1.0.0)', async () => {
 // NOTE: this works differently for global installations. See similar tests in global.ts
 test("don't override existing spec in package.json on named installation", async () => {
   const project = prepareEmpty()
-  let manifest = await addDependenciesToPackage({
+  let { updatedManifest: manifest } = await addDependenciesToPackage({
     dependencies: {
       'is-negative': '^1.0.0', // this will be updated
       'is-positive': '^2.0.0', // this will be kept as no newer version is available from the range
       sec: 'sindresorhus/sec#main',
     },
-  }, ['is-positive'], await testDefaults())
-  manifest = await addDependenciesToPackage(manifest, ['is-negative'], await testDefaults())
-  manifest = await addDependenciesToPackage(manifest, ['sec'], await testDefaults())
+  }, ['is-positive'], testDefaults())
+  manifest = (await addDependenciesToPackage(manifest, ['is-negative@latest'], testDefaults())).updatedManifest
+  manifest = (await addDependenciesToPackage(manifest, ['sec'], testDefaults())).updatedManifest
 
   expect(project.requireModule('is-positive/package.json').version).toBe('2.0.0')
-  expect(project.requireModule('is-negative/package.json').version).toBe('1.0.1')
+  expect(project.requireModule('is-negative/package.json').version).toBe('2.1.0')
 
   expect(manifest.dependencies).toStrictEqual({
-    'is-negative': '^1.0.1',
+    'is-negative': '^2.1.0',
     'is-positive': '^2.0.0',
-    sec: 'github:sindresorhus/sec#main',
+    sec: 'sindresorhus/sec#main',
   })
 })
 
 test('saveDev scoped module to package.json (@rstacruz/tap-spec)', async () => {
   const project = prepareEmpty()
-  const manifest = await addDependenciesToPackage({}, ['@rstacruz/tap-spec'], await testDefaults({ fastUnpack: false, targetDependenciesField: 'devDependencies' }))
+  const { updatedManifest: manifest } = await addDependenciesToPackage({}, ['@rstacruz/tap-spec'], testDefaults({ fastUnpack: false, targetDependenciesField: 'devDependencies' }))
 
   const m = project.requireModule('@rstacruz/tap-spec')
   expect(typeof m).toBe('function')
@@ -54,14 +55,14 @@ test('dependency should not be added to package.json if it is already there', as
   await addDistTag({ package: '@pnpm.e2e/bar', version: '100.0.0', distTag: 'latest' })
 
   const project = prepareEmpty()
-  const manifest = await addDependenciesToPackage({
+  const { updatedManifest: manifest } = await addDependenciesToPackage({
     devDependencies: {
       '@pnpm.e2e/foo': '^100.0.0',
     },
     optionalDependencies: {
       '@pnpm.e2e/bar': '^100.0.0',
     },
-  }, ['@pnpm.e2e/foo', '@pnpm.e2e/bar'], await testDefaults())
+  }, ['@pnpm.e2e/foo', '@pnpm.e2e/bar'], testDefaults())
 
   expect(manifest).toStrictEqual({
     devDependencies: {
@@ -72,13 +73,12 @@ test('dependency should not be added to package.json if it is already there', as
     },
   })
 
-  const lockfile = await project.readLockfile()
+  const lockfile = project.readLockfile()
 
-  expect(lockfile.devDependencies['@pnpm.e2e/foo'].version).toBe('100.0.0')
-  expect(lockfile.packages['/@pnpm.e2e/foo@100.0.0'].dev).toBeTruthy()
+  expect(lockfile.importers['.'].devDependencies?.['@pnpm.e2e/foo'].version).toBe('100.0.0')
 
-  expect(lockfile.optionalDependencies['@pnpm.e2e/bar'].version).toBe('100.0.0')
-  expect(lockfile.packages['/@pnpm.e2e/bar@100.0.0'].optional).toBeTruthy()
+  expect(lockfile.importers['.'].optionalDependencies?.['@pnpm.e2e/bar'].version).toBe('100.0.0')
+  expect(lockfile.snapshots['@pnpm.e2e/bar@100.0.0'].optional).toBeTruthy()
 })
 
 test('dependencies should be updated in the fields where they already are', async () => {
@@ -86,14 +86,14 @@ test('dependencies should be updated in the fields where they already are', asyn
   await addDistTag({ package: '@pnpm.e2e/bar', version: '100.1.0', distTag: 'latest' })
 
   prepareEmpty()
-  const manifest = await addDependenciesToPackage({
+  const { updatedManifest: manifest } = await addDependenciesToPackage({
     devDependencies: {
       '@pnpm.e2e/foo': '^100.0.0',
     },
     optionalDependencies: {
       '@pnpm.e2e/bar': '^100.0.0',
     },
-  }, ['@pnpm.e2e/foo@latest', '@pnpm.e2e/bar@latest'], await testDefaults())
+  }, ['@pnpm.e2e/foo@latest', '@pnpm.e2e/bar@latest'], testDefaults())
 
   expect(manifest).toStrictEqual({
     devDependencies: {
@@ -111,7 +111,7 @@ test('dependency should be removed from the old field when installing it as a di
   await addDistTag({ package: '@pnpm.e2e/qar', version: '100.0.0', distTag: 'latest' })
 
   const project = prepareEmpty()
-  let manifest = await addDependenciesToPackage({
+  let { updatedManifest: manifest } = await addDependenciesToPackage({
     dependencies: {
       '@pnpm.e2e/foo': '^100.0.0',
     },
@@ -121,9 +121,9 @@ test('dependency should be removed from the old field when installing it as a di
     optionalDependencies: {
       '@pnpm.e2e/qar': '^100.0.0',
     },
-  }, ['@pnpm.e2e/foo'], await testDefaults({ targetDependenciesField: 'optionalDependencies' }))
-  manifest = await addDependenciesToPackage(manifest, ['@pnpm.e2e/bar'], await testDefaults({ targetDependenciesField: 'dependencies' }))
-  manifest = await addDependenciesToPackage(manifest, ['@pnpm.e2e/qar'], await testDefaults({ targetDependenciesField: 'devDependencies' }))
+  }, ['@pnpm.e2e/foo'], testDefaults({ targetDependenciesField: 'optionalDependencies' }))
+  manifest = (await addDependenciesToPackage(manifest, ['@pnpm.e2e/bar'], testDefaults({ targetDependenciesField: 'dependencies' }))).updatedManifest
+  manifest = (await addDependenciesToPackage(manifest, ['@pnpm.e2e/qar'], testDefaults({ targetDependenciesField: 'devDependencies' }))).updatedManifest
 
   expect(manifest).toStrictEqual({
     dependencies: {
@@ -137,7 +137,7 @@ test('dependency should be removed from the old field when installing it as a di
     },
   })
 
-  manifest = await addDependenciesToPackage(manifest, ['@pnpm.e2e/bar', '@pnpm.e2e/foo', '@pnpm.e2e/qar'], await testDefaults({ targetDependenciesField: 'dependencies' }))
+  manifest = (await addDependenciesToPackage(manifest, ['@pnpm.e2e/bar', '@pnpm.e2e/foo', '@pnpm.e2e/qar'], testDefaults({ targetDependenciesField: 'dependencies' }))).updatedManifest
 
   expect(manifest).toStrictEqual({
     dependencies: {
@@ -150,8 +150,8 @@ test('dependency should be removed from the old field when installing it as a di
   })
 
   {
-    const lockfile = await project.readCurrentLockfile()
-    expect(Object.keys(lockfile.dependencies)).toStrictEqual(['@pnpm.e2e/bar', '@pnpm.e2e/foo', '@pnpm.e2e/qar'])
+    const lockfile = project.readCurrentLockfile()
+    expect(Object.keys(lockfile.importers['.'].dependencies ?? {})).toStrictEqual(['@pnpm.e2e/bar', '@pnpm.e2e/foo', '@pnpm.e2e/qar'])
   }
 
   // manually editing package.json. Converting all prod deps to dev deps
@@ -159,21 +159,21 @@ test('dependency should be removed from the old field when installing it as a di
   manifest.devDependencies = manifest.dependencies
   delete manifest.dependencies
 
-  await install(manifest, await testDefaults())
+  await install(manifest, testDefaults())
 
   {
-    const lockfile = await project.readCurrentLockfile()
-    expect(Object.keys(lockfile.devDependencies)).toStrictEqual(['@pnpm.e2e/bar', '@pnpm.e2e/foo', '@pnpm.e2e/qar'])
-    expect(lockfile.dependencies).toBeFalsy()
+    const lockfile = project.readCurrentLockfile()
+    expect(Object.keys(lockfile.importers['.'].devDependencies ?? {})).toStrictEqual(['@pnpm.e2e/bar', '@pnpm.e2e/foo', '@pnpm.e2e/qar'])
+    expect(lockfile.importers['.'].dependencies).toBeFalsy()
   }
 })
 
 test('multiple save to package.json with `exact` versions (@rstacruz/tap-spec & rimraf@2.5.1) (in sorted order)', async () => {
   const project = prepareEmpty()
-  const manifest = await addDependenciesToPackage({}, ['is-positive@1.0.0', '@zkochan/foo@latest'], await testDefaults({ save: true, pinnedVersion: 'patch' }))
+  const { updatedManifest: manifest } = await addDependenciesToPackage({}, ['is-positive@1.0.0', '@zkochan/foo@latest'], testDefaults({ save: true, pinnedVersion: 'patch' }))
 
-  await project.has('@zkochan/foo')
-  await project.has('is-positive')
+  project.has('@zkochan/foo')
+  project.has('is-positive')
 
   const expectedDeps = {
     '@zkochan/foo': '1.0.0',
@@ -186,7 +186,7 @@ test('multiple save to package.json with `exact` versions (@rstacruz/tap-spec & 
 test('save to package.json with save prefix ~', async () => {
   await addDistTag({ package: '@pnpm.e2e/pkg-with-1-dep', version: '100.0.0', distTag: 'latest' })
   prepareEmpty()
-  const manifest = await addDependenciesToPackage({}, ['@pnpm.e2e/pkg-with-1-dep'], await testDefaults({ pinnedVersion: 'minor' }))
+  const { updatedManifest: manifest } = await addDependenciesToPackage({}, ['@pnpm.e2e/pkg-with-1-dep'], testDefaults({ pinnedVersion: 'minor' }))
 
   expect(manifest.dependencies).toStrictEqual({ '@pnpm.e2e/pkg-with-1-dep': '~100.0.0' })
 })
@@ -198,7 +198,7 @@ test('an update bumps the versions in the manifest', async () => {
 
   prepareEmpty()
 
-  const { manifest } = await mutateModulesInSingleProject({
+  const { updatedProject: { manifest } } = await mutateModulesInSingleProject({
     manifest: {
       dependencies: {
         '@pnpm.e2e/peer-a': '~1.0.0',
@@ -211,10 +211,10 @@ test('an update bumps the versions in the manifest', async () => {
       },
     },
     mutation: 'install',
-    rootDir: process.cwd(),
+    rootDir: process.cwd() as ProjectRootDir,
     update: true,
   },
-  await testDefaults())
+  testDefaults())
 
   expect(manifest).toStrictEqual({
     dependencies: {

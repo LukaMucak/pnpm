@@ -1,5 +1,7 @@
+import assert from 'assert'
 import path from 'path'
-import { getFilePathInCafs, type PackageFilesIndex } from '@pnpm/store.cafs'
+import util from 'util'
+import { getIndexFilePathInCafs, type PackageFilesIndex } from '@pnpm/store.cafs'
 import { calcDepState, lockfileToDepGraph, type DepsStateCache } from '@pnpm/calc-dep-state'
 import {
   LAYOUT_VERSION,
@@ -13,23 +15,26 @@ import {
   runPostinstallHooks,
 } from '@pnpm/lifecycle'
 import { linkBins } from '@pnpm/link-bins'
-import { type TarballResolution } from '@pnpm/lockfile-types'
+import { type TarballResolution } from '@pnpm/lockfile.types'
 import {
-  type Lockfile,
+  type LockfileObject,
   nameVerFromPkgSnapshot,
   packageIsIndependent,
   type PackageSnapshots,
-} from '@pnpm/lockfile-utils'
-import { lockfileWalker, type LockfileWalkerStep } from '@pnpm/lockfile-walker'
+} from '@pnpm/lockfile.utils'
+import { lockfileWalker, type LockfileWalkerStep } from '@pnpm/lockfile.walker'
 import { logger, streamParser } from '@pnpm/logger'
 import { writeModulesManifest } from '@pnpm/modules-yaml'
 import { createOrConnectStoreController } from '@pnpm/store-connection-manager'
-import { type ProjectManifest } from '@pnpm/types'
+import { type DepPath, type ProjectManifest, type ProjectId, type ProjectRootDir } from '@pnpm/types'
+import { createAllowBuildFunction } from '@pnpm/builder.policy'
+import { pkgRequiresBuild } from '@pnpm/exec.pkg-requires-build'
 import * as dp from '@pnpm/dependency-path'
-import { hardLinkDir } from '@pnpm/fs.hard-link-dir'
+import { safeReadPackageJsonFromDir } from '@pnpm/read-package-json'
+import { hardLinkDir } from '@pnpm/worker'
 import loadJsonFile from 'load-json-file'
 import runGroups from 'run-groups'
-import graphSequencer from '@pnpm/graph-sequencer'
+import { graphSequencer } from '@pnpm/deps.graph-sequencer'
 import npa from '@pnpm/npm-package-arg'
 import pLimit from 'p-limit'
 import semver from 'semver'
@@ -47,8 +52,8 @@ function findPackages (
   opts: {
     prefix: string
   }
-): string[] {
-  return Object.keys(packages)
+): DepPath[] {
+  return (Object.keys(packages) as DepPath[])
     .filter((relativeDepPath) => {
       const pkgLockfile = packages[relativeDepPath]
       const pkgInfo = nameVerFromPkgSnapshot(relativeDepPath, pkgLockfile)
@@ -68,7 +73,7 @@ function findPackages (
 function matches (
   searched: PackageSelector[],
   manifest: { name: string, version?: string }
-) {
+): boolean {
   return searched.some((searchedPkg) => {
     if (typeof searchedPkg === 'string') {
       return manifest.name === searchedPkg
@@ -84,10 +89,10 @@ type PackageSelector = string | {
 }
 
 export async function rebuildSelectedPkgs (
-  projects: Array<{ buildIndex: number, manifest: ProjectManifest, rootDir: string }>,
+  projects: Array<{ buildIndex: number, manifest: ProjectManifest, rootDir: ProjectRootDir }>,
   pkgSpecs: string[],
   maybeOpts: RebuildOptions
-) {
+): Promise<void> {
   const reporter = maybeOpts?.reporter
   if ((reporter != null) && typeof reporter === 'function') {
     streamParser.on('data', reporter)
@@ -95,7 +100,7 @@ export async function rebuildSelectedPkgs (
   const opts = await extendRebuildOptions(maybeOpts)
   const ctx = await getContext({ ...opts, allProjects: projects })
 
-  if (!ctx.currentLockfile || (ctx.currentLockfile.packages == null)) return
+  if (ctx.currentLockfile?.packages == null) return
   const packages = ctx.currentLockfile.packages
 
   const searched: PackageSelector[] = pkgSpecs.map((arg) => {
@@ -120,19 +125,36 @@ export async function rebuildSelectedPkgs (
     ]
   }
 
-  await _rebuild(
+  const { ignoredPkgs } = await _rebuild(
     {
       pkgsToRebuild: new Set(pkgs),
       ...ctx,
     },
     opts
   )
+  await writeModulesManifest(ctx.rootModulesDir, {
+    prunedAt: new Date().toUTCString(),
+    ...ctx.modulesFile,
+    hoistedDependencies: ctx.hoistedDependencies,
+    hoistPattern: ctx.hoistPattern,
+    included: ctx.include,
+    ignoredBuilds: ignoredPkgs,
+    layoutVersion: LAYOUT_VERSION,
+    packageManager: `${opts.packageManager.name}@${opts.packageManager.version}`,
+    pendingBuilds: ctx.pendingBuilds,
+    publicHoistPattern: ctx.publicHoistPattern,
+    registries: ctx.registries,
+    skipped: Array.from(ctx.skipped),
+    storeDir: ctx.storeDir,
+    virtualStoreDir: ctx.virtualStoreDir,
+    virtualStoreDirMaxLength: ctx.virtualStoreDirMaxLength,
+  })
 }
 
 export async function rebuildProjects (
-  projects: Array<{ buildIndex: number, manifest: ProjectManifest, rootDir: string }>,
+  projects: Array<{ buildIndex: number, manifest: ProjectManifest, rootDir: ProjectRootDir }>,
   maybeOpts: RebuildOptions
-) {
+): Promise<void> {
   const reporter = maybeOpts?.reporter
   if ((reporter != null) && typeof reporter === 'function') {
     streamParser.on('data', reporter)
@@ -148,7 +170,7 @@ export async function rebuildProjects (
     idsToRebuild = Object.keys(ctx.currentLockfile.packages)
   }
 
-  const pkgsThatWereRebuilt = await _rebuild(
+  const { pkgsThatWereRebuilt, ignoredPkgs } = await _rebuild(
     {
       pkgsToRebuild: new Set(idsToRebuild),
       ...ctx,
@@ -189,6 +211,7 @@ export async function rebuildProjects (
     hoistedDependencies: ctx.hoistedDependencies,
     hoistPattern: ctx.hoistPattern,
     included: ctx.include,
+    ignoredBuilds: ignoredPkgs,
     layoutVersion: LAYOUT_VERSION,
     packageManager: `${opts.packageManager.name}@${opts.packageManager.version}`,
     pendingBuilds: ctx.pendingBuilds,
@@ -197,16 +220,17 @@ export async function rebuildProjects (
     skipped: Array.from(ctx.skipped),
     storeDir: ctx.storeDir,
     virtualStoreDir: ctx.virtualStoreDir,
+    virtualStoreDirMaxLength: ctx.virtualStoreDirMaxLength,
   })
 }
 
 function getSubgraphToBuild (
   step: LockfileWalkerStep,
-  nodesToBuildAndTransitive: Set<string>,
+  nodesToBuildAndTransitive: Set<DepPath>,
   opts: {
     pkgsToRebuild: Set<string>
   }
-) {
+): boolean {
   let currentShouldBeBuilt = false
   for (const { depPath, next } of step.dependencies) {
     if (nodesToBuildAndTransitive.has(depPath)) {
@@ -236,21 +260,20 @@ async function _rebuild (
     skipped: Set<string>
     virtualStoreDir: string
     rootModulesDir: string
-    currentLockfile: Lockfile
-    projects: Record<string, { id: string, rootDir: string }>
+    currentLockfile: LockfileObject
+    projects: Record<string, { id: ProjectId, rootDir: ProjectRootDir }>
     extraBinPaths: string[]
     extraNodePaths: string[]
   } & Pick<PnpmContext, 'modulesFile'>,
   opts: StrictRebuildOptions
-) {
+): Promise<{ pkgsThatWereRebuilt: Set<string>, ignoredPkgs: string[] }> {
   const depGraph = lockfileToDepGraph(ctx.currentLockfile)
   const depsStateCache: DepsStateCache = {}
-  const cafsDir = path.join(opts.storeDir, 'files')
-  const pkgsThatWereRebuilt = new Set()
+  const pkgsThatWereRebuilt = new Set<string>()
   const graph = new Map()
   const pkgSnapshots: PackageSnapshots = ctx.currentLockfile.packages ?? {}
 
-  const nodesToBuildAndTransitive = new Set<string>()
+  const nodesToBuildAndTransitive = new Set<DepPath>()
   getSubgraphToBuild(
     lockfileWalker(
       ctx.currentLockfile,
@@ -274,21 +297,31 @@ async function _rebuild (
       .map(([pkgName, reference]) => dp.refToRelative(reference, pkgName))
       .filter((childRelDepPath) => childRelDepPath && nodesToBuildAndTransitive.has(childRelDepPath)))
   }
-  const graphSequencerResult = graphSequencer({
+  const graphSequencerResult = graphSequencer(
     graph,
-    groups: [nodesToBuildAndTransitiveArray],
-  })
-  const chunks = graphSequencerResult.chunks as string[][]
+    nodesToBuildAndTransitiveArray
+  )
+  const chunks = graphSequencerResult.chunks as DepPath[][]
   const warn = (message: string) => {
     logger.info({ message, prefix: opts.dir })
   }
+
+  const ignoredPkgs: string[] = []
+  const _allowBuild = createAllowBuildFunction(opts) ?? (() => true)
+  const allowBuild = (pkgName: string) => {
+    if (_allowBuild(pkgName)) return true
+    ignoredPkgs.push(pkgName)
+    return false
+  }
+  const builtDepPaths = new Set<string>()
+
   const groups = chunks.map((chunk) => chunk.filter((depPath) => ctx.pkgsToRebuild.has(depPath) && !ctx.skipped.has(depPath)).map((depPath) =>
     async () => {
       const pkgSnapshot = pkgSnapshots[depPath]
       const pkgInfo = nameVerFromPkgSnapshot(depPath, pkgSnapshot)
       const pkgRoots = opts.nodeLinker === 'hoisted'
         ? (ctx.modulesFile?.hoistedLocations?.[depPath] ?? []).map((hoistedLocation) => path.join(opts.lockfileDir, hoistedLocation))
-        : [path.join(ctx.virtualStoreDir, dp.depPathToFilename(depPath), 'node_modules', pkgInfo.name)]
+        : [path.join(ctx.virtualStoreDir, dp.depPathToFilename(depPath, opts.virtualStoreDirMaxLength), 'node_modules', pkgInfo.name)]
       if (pkgRoots.length === 0) {
         if (pkgSnapshot.optional) return
         throw new PnpmError('MISSING_HOISTED_LOCATIONS', `${depPath} is not found in hoistedLocations inside node_modules/.modules.yaml`, {
@@ -299,7 +332,7 @@ async function _rebuild (
       try {
         const extraBinPaths = ctx.extraBinPaths
         if (opts.nodeLinker !== 'hoisted') {
-          const modules = path.join(ctx.virtualStoreDir, dp.depPathToFilename(depPath), 'node_modules')
+          const modules = path.join(ctx.virtualStoreDir, dp.depPathToFilename(depPath, opts.virtualStoreDirMaxLength), 'node_modules')
           const binPath = path.join(pkgRoot, 'node_modules', '.bin')
           await linkBins(modules, binPath, { extraNodePaths: ctx.extraNodePaths, warn })
         } else {
@@ -307,8 +340,9 @@ async function _rebuild (
         }
         const resolution = (pkgSnapshot.resolution as TarballResolution)
         let sideEffectsCacheKey: string | undefined
+        const pkgId = `${pkgInfo.name}@${pkgInfo.version}`
         if (opts.skipIfHasSideEffectsCache && resolution.integrity) {
-          const filesIndexFile = getFilePathInCafs(cafsDir, resolution.integrity!.toString(), 'index')
+          const filesIndexFile = getIndexFilePathInCafs(opts.storeDir, resolution.integrity!.toString(), pkgId)
           const pkgFilesIndex = await loadJsonFile<PackageFilesIndex>(filesIndexFile)
           sideEffectsCacheKey = calcDepState(depGraph, depsStateCache, depPath, {
             isBuilt: true,
@@ -318,7 +352,15 @@ async function _rebuild (
             return
           }
         }
-        const hasSideEffects = await runPostinstallHooks({
+        let requiresBuild = true
+        const pgkManifest = await safeReadPackageJsonFromDir(pkgRoot)
+        if (pgkManifest != null) {
+          // This won't return the correct result for packages with binding.gyp as we don't pass the filesIndex to the function.
+          // However, currently rebuild doesn't work for such packages at all, which should be fixed.
+          requiresBuild = pkgRequiresBuild(pgkManifest, {})
+        }
+
+        const hasSideEffects = requiresBuild && allowBuild(pkgInfo.name) && await runPostinstallHooks({
           depPath,
           extraBinPaths,
           extraEnv: opts.extraEnv,
@@ -331,7 +373,8 @@ async function _rebuild (
           unsafePerm: opts.unsafePerm || false,
         })
         if (hasSideEffects && (opts.sideEffectsCacheWrite ?? true) && resolution.integrity) {
-          const filesIndexFile = getFilePathInCafs(cafsDir, resolution.integrity!.toString(), 'index')
+          builtDepPaths.add(depPath)
+          const filesIndexFile = getIndexFilePathInCafs(opts.storeDir, resolution.integrity!.toString(), pkgId)
           try {
             if (!sideEffectsCacheKey) {
               sideEffectsCacheKey = calcDepState(depGraph, depsStateCache, depPath, {
@@ -342,8 +385,9 @@ async function _rebuild (
               sideEffectsCacheKey,
               filesIndexFile,
             })
-          } catch (err: any) { // eslint-disable-line
-            if (err.statusCode === 403) {
+          } catch (err: unknown) {
+            assert(util.types.isNativeError(err))
+            if ('statusCode' in err && err.statusCode === 403) {
               logger.warn({
                 message: `The store server disabled upload requests, could not upload ${pkgRoot}`,
                 prefix: opts.lockfileDir,
@@ -358,7 +402,8 @@ async function _rebuild (
           }
         }
         pkgsThatWereRebuilt.add(depPath)
-      } catch (err: any) { // eslint-disable-line
+      } catch (err: unknown) {
+        assert(util.types.isNativeError(err))
         if (pkgSnapshot.optional) {
           // TODO: add parents field to the log
           skippedOptionalDependencyLogger.debug({
@@ -383,36 +428,38 @@ async function _rebuild (
 
   await runGroups(opts.childConcurrency || 5, groups)
 
-  // It may be optimized because some bins were already linked before running lifecycle scripts
-  await Promise.all(
-    Object
-      .keys(pkgSnapshots)
-      .filter((depPath) => !packageIsIndependent(pkgSnapshots[depPath]))
-      .map(async (depPath) => limitLinking(async () => {
-        const pkgSnapshot = pkgSnapshots[depPath]
-        const pkgInfo = nameVerFromPkgSnapshot(depPath, pkgSnapshot)
-        const modules = path.join(ctx.virtualStoreDir, dp.depPathToFilename(depPath), 'node_modules')
-        const binPath = path.join(modules, pkgInfo.name, 'node_modules', '.bin')
-        return linkBins(modules, binPath, { warn })
-      }))
-  )
-  await Promise.all(Object.values(ctx.projects).map(async ({ rootDir }) => limitLinking(async () => {
-    const modules = path.join(rootDir, 'node_modules')
-    const binPath = path.join(modules, '.bin')
-    return linkBins(modules, binPath, {
-      allowExoticManifests: true,
-      warn,
-    })
-  })))
+  if (builtDepPaths.size > 0) {
+    // It may be optimized because some bins were already linked before running lifecycle scripts
+    await Promise.all(
+      (Object
+        .keys(pkgSnapshots) as DepPath[])
+        .filter((depPath) => !packageIsIndependent(pkgSnapshots[depPath]))
+        .map(async (depPath) => limitLinking(async () => {
+          const pkgSnapshot = pkgSnapshots[depPath]
+          const pkgInfo = nameVerFromPkgSnapshot(depPath, pkgSnapshot)
+          const modules = path.join(ctx.virtualStoreDir, dp.depPathToFilename(depPath, opts.virtualStoreDirMaxLength), 'node_modules')
+          const binPath = path.join(modules, pkgInfo.name, 'node_modules', '.bin')
+          return linkBins(modules, binPath, { warn })
+        }))
+    )
+    await Promise.all(Object.values(ctx.projects).map(async ({ rootDir }) => limitLinking(async () => {
+      const modules = path.join(rootDir, 'node_modules')
+      const binPath = path.join(modules, '.bin')
+      return linkBins(modules, binPath, {
+        allowExoticManifests: true,
+        warn,
+      })
+    })))
+  }
 
-  return pkgsThatWereRebuilt
+  return { pkgsThatWereRebuilt, ignoredPkgs }
 }
 
 function binDirsInAllParentDirs (pkgRoot: string, lockfileDir: string): string[] {
   const binDirs: string[] = []
   let dir = pkgRoot
   do {
-    if (!path.dirname(dir).startsWith('@')) {
+    if (!(path.dirname(dir)[0] === '@')) {
       binDirs.push(path.join(dir, 'node_modules/.bin'))
     }
     dir = path.dirname(dir)

@@ -5,23 +5,28 @@ import { logger } from '@pnpm/logger'
 import { pickRegistryForPackage } from '@pnpm/pick-registry-for-package'
 import { type ResolveFunction } from '@pnpm/resolver-base'
 import { sortPackages } from '@pnpm/sort-packages'
-import { type Registries } from '@pnpm/types'
+import { type Registries, type ProjectRootDir } from '@pnpm/types'
 import pFilter from 'p-filter'
+import pLimit from 'p-limit'
 import pick from 'ramda/src/pick'
 import writeJsonFile from 'write-json-file'
 import { publish } from './publish'
 
 export type PublishRecursiveOpts = Required<Pick<Config,
+| 'bin'
 | 'cacheDir'
 | 'cliOptions'
 | 'dir'
+| 'pnpmHomeDir'
 | 'rawConfig'
 | 'registries'
 | 'workspaceDir'
+| 'workspaceConcurrency'
 >> &
 Partial<Pick<Config,
 | 'tag'
 | 'ca'
+| 'catalogs'
 | 'cert'
 | 'fetchTimeout'
 | 'force'
@@ -42,6 +47,7 @@ Partial<Pick<Config,
 | 'offline'
 | 'selectedProjectsGraph'
 | 'strictSsl'
+| 'sslConfigs'
 | 'unsafePerm'
 | 'userAgent'
 | 'userConfig'
@@ -58,7 +64,7 @@ export async function recursivePublish (
   opts: PublishRecursiveOpts & Required<Pick<Config, 'selectedProjectsGraph'>>
 ): Promise<{ exitCode: number }> {
   const pkgs = Object.values(opts.selectedProjectsGraph).map((wsPkg) => wsPkg.package)
-  const resolve = createResolver({
+  const { resolve } = createResolver({
     ...opts,
     authConfig: opts.rawConfig,
     userConfig: opts.userConfig,
@@ -69,18 +75,18 @@ export async function recursivePublish (
       retries: opts.fetchRetries,
     },
     timeout: opts.fetchTimeout,
-  }) as unknown as ResolveFunction
+  })
   const pkgsToPublish = await pFilter(pkgs, async (pkg) => {
     if (!pkg.manifest.name || !pkg.manifest.version || pkg.manifest.private) return false
     if (opts.force) return true
     return !(await isAlreadyPublished({
-      dir: pkg.dir,
-      lockfileDir: opts.lockfileDir ?? pkg.dir,
+      dir: pkg.rootDir,
+      lockfileDir: opts.lockfileDir ?? pkg.rootDir,
       registries: opts.registries,
       resolve,
     }, pkg.manifest.name, pkg.manifest.version))
   })
-  const publishedPkgDirs = new Set(pkgsToPublish.map(({ dir }) => dir))
+  const publishedPkgDirs = new Set<ProjectRootDir>(pkgsToPublish.map(({ rootDir }) => rootDir))
   const publishedPackages: Array<{ name?: string, version?: string }> = []
   if (publishedPkgDirs.size === 0) {
     logger.info({
@@ -99,34 +105,38 @@ export async function recursivePublish (
       appendedArgs.push(`--otp=${opts.cliOptions['otp'] as string}`)
     }
     const chunks = sortPackages(opts.selectedProjectsGraph)
+    const limitPublish = pLimit(opts.workspaceConcurrency ?? 4)
     const tag = opts.tag ?? 'latest'
     for (const chunk of chunks) {
       // eslint-disable-next-line no-await-in-loop
-      const publishResults = await Promise.all(chunk.map(async (pkgDir) => {
-        if (!publishedPkgDirs.has(pkgDir)) return null
-        const pkg = opts.selectedProjectsGraph[pkgDir].package
-        const registry = pkg.manifest.publishConfig?.registry ?? pickRegistryForPackage(opts.registries, pkg.manifest.name!)
-        const publishResult = await publish({
-          ...opts,
-          dir: pkg.dir,
-          argv: {
-            original: [
-              'publish',
-              '--tag',
-              tag,
-              '--registry',
-              registry,
-              ...appendedArgs,
-            ],
-          },
-          gitChecks: false,
-          recursive: false,
-        }, [pkg.dir])
-        if (publishResult?.manifest != null) {
-          publishedPackages.push(pick(['name', 'version'], publishResult.manifest))
-        }
-        return publishResult
-      }))
+      const publishResults = await Promise.all(chunk.map(pkgDir =>
+        limitPublish(async () => {
+          if (!publishedPkgDirs.has(pkgDir)) return
+          const pkg = opts.selectedProjectsGraph[pkgDir].package
+          const registry = pkg.manifest.publishConfig?.registry ?? pickRegistryForPackage(opts.registries, pkg.manifest.name!)
+
+          const publishResult = await publish({
+            ...opts,
+            dir: pkg.rootDir,
+            argv: {
+              original: [
+                'publish',
+                '--tag',
+                tag,
+                '--registry',
+                registry,
+                ...appendedArgs,
+              ],
+            },
+            gitChecks: false,
+            recursive: false,
+          }, [pkg.rootDir])
+          if (publishResult?.manifest != null) {
+            publishedPackages.push(pick(['name', 'version'], publishResult.manifest))
+          }
+          return publishResult
+        })
+      ))
       const failedPublish = publishResults.find((result) => result?.exitCode)
       if (failedPublish) {
         return { exitCode: failedPublish.exitCode! }
@@ -148,13 +158,12 @@ async function isAlreadyPublished (
   },
   pkgName: string,
   pkgVersion: string
-) {
+): Promise<boolean> {
   try {
-    await opts.resolve({ alias: pkgName, pref: pkgVersion }, {
+    await opts.resolve({ alias: pkgName, bareSpecifier: pkgVersion }, {
       lockfileDir: opts.lockfileDir,
       preferredVersions: {},
       projectDir: opts.dir,
-      registry: pickRegistryForPackage(opts.registries, pkgName, pkgVersion),
     })
     return true
   } catch (err: any) { // eslint-disable-line

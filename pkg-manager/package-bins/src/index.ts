@@ -1,6 +1,6 @@
 import path from 'path'
 import { type DependencyManifest, type PackageBin } from '@pnpm/types'
-import fastGlob from 'fast-glob'
+import { glob } from 'tinyglobby'
 import isSubdir from 'is-subdir'
 
 export interface Command {
@@ -25,10 +25,11 @@ export async function getBinsFromPackageManifest (manifest: DependencyManifest, 
 
 async function findFiles (dir: string): Promise<string[]> {
   try {
-    return await fastGlob('**', {
+    return await glob('**', {
       cwd: dir,
       onlyFiles: true,
       followSymbolicLinks: false,
+      expandDirectories: false,
     })
   } catch (err: any) { // eslint-disable-line
     if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
@@ -42,16 +43,20 @@ function commandsFromBin (bin: PackageBin, pkgName: string, pkgPath: string) {
   if (typeof bin === 'string') {
     return [
       {
-        name: pkgName.startsWith('@') ? pkgName.slice(pkgName.indexOf('/') + 1) : pkgName,
+        name: normalizeBinName(pkgName),
         path: path.join(pkgPath, bin),
       },
     ]
   }
   return Object.keys(bin)
-    .filter((commandName) => encodeURIComponent(commandName) === commandName || commandName === '$')
+    .filter((commandName) => encodeURIComponent(commandName) === commandName || commandName === '$' || commandName[0] === '@')
     .map((commandName) => ({
-      name: commandName,
+      name: normalizeBinName(commandName),
       path: path.join(pkgPath, bin[commandName]),
     }))
     .filter((cmd) => isSubdir(pkgPath, cmd.path))
+}
+
+function normalizeBinName (name: string): string {
+  return name[0] === '@' ? name.slice(name.indexOf('/') + 1) : name
 }

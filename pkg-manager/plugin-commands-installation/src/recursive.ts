@@ -4,13 +4,19 @@ import {
   type RecursiveSummary,
   throwOnCommandFail,
 } from '@pnpm/cli-utils'
-import { type Config, readLocalConfig } from '@pnpm/config'
+import {
+  type Config,
+  type OptionsFromRootManifest,
+  getOptionsFromRootManifest,
+  readLocalConfig,
+} from '@pnpm/config'
 import { PnpmError } from '@pnpm/error'
-import { arrayOfWorkspacePackagesToMap } from '@pnpm/workspace.find-packages'
+import { arrayOfWorkspacePackagesToMap } from '@pnpm/get-context'
 import { logger } from '@pnpm/logger'
 import { filterDependenciesByType } from '@pnpm/manifest-utils'
 import { createMatcherWithIndex } from '@pnpm/matcher'
 import { rebuild } from '@pnpm/plugin-commands-rebuild'
+import { type StoreController } from '@pnpm/package-store'
 import { requireHooks } from '@pnpm/pnpmfile'
 import { sortPackages } from '@pnpm/sort-packages'
 import { createOrConnectStoreController, type CreateStoreControllerOptions } from '@pnpm/store-connection-manager'
@@ -20,6 +26,8 @@ import {
   type Project,
   type ProjectManifest,
   type ProjectsGraph,
+  type ProjectRootDir,
+  type ProjectRootDirRealPath,
 } from '@pnpm/types'
 import {
   addDependenciesToPackage,
@@ -35,15 +43,15 @@ import isSubdir from 'is-subdir'
 import mem from 'mem'
 import pFilter from 'p-filter'
 import pLimit from 'p-limit'
-import { getOptionsFromRootManifest } from './getOptionsFromRootManifest'
 import { createWorkspaceSpecs, updateToWorkspacePackagesFromManifest } from './updateWorkspaceDependencies'
-import { updateToLatestSpecsFromManifest, createLatestSpecs } from './updateToLatestSpecsFromManifest'
 import { getSaveType } from './getSaveType'
 import { getPinnedVersion } from './getPinnedVersion'
 import { type PreferredVersions } from '@pnpm/resolver-base'
+import { IgnoredBuildsError } from './errors'
 
-type RecursiveOptions = CreateStoreControllerOptions & Pick<Config,
+export type RecursiveOptions = CreateStoreControllerOptions & Pick<Config,
 | 'bail'
+| 'configDependencies'
 | 'dedupePeerDependents'
 | 'depth'
 | 'globalPnpmfile'
@@ -58,6 +66,8 @@ type RecursiveOptions = CreateStoreControllerOptions & Pick<Config,
 | 'pnpmfile'
 | 'rawLocalConfig'
 | 'registries'
+| 'rootProjectManifest'
+| 'rootProjectManifestDir'
 | 'save'
 | 'saveDev'
 | 'saveExact'
@@ -87,20 +97,28 @@ type RecursiveOptions = CreateStoreControllerOptions & Pick<Config,
   selectedProjectsGraph: ProjectsGraph
   preferredVersions?: PreferredVersions
   pruneDirectDependencies?: boolean
+  pruneLockfileImporters?: boolean
+  storeControllerAndDir?: {
+    ctrl: StoreController
+    dir: string
+  }
 } & Partial<
 Pick<Config,
 | 'sort'
+| 'strictDepBuilds'
 | 'workspaceConcurrency'
 >
 > & Required<
 Pick<Config, 'workspaceDir'>
 >
 
+export type CommandFullName = 'install' | 'add' | 'remove' | 'update' | 'import'
+
 export async function recursive (
   allProjects: Project[],
   params: string[],
   opts: RecursiveOptions,
-  cmdFullName: 'install' | 'add' | 'remove' | 'unlink' | 'update' | 'import'
+  cmdFullName: CommandFullName
 ): Promise<boolean | string> {
   if (allProjects.length === 0) {
     // It might make sense to throw an exception in this case
@@ -116,20 +134,20 @@ export async function recursive (
 
   const throwOnFail = throwOnCommandFail.bind(null, `pnpm recursive ${cmdFullName}`)
 
-  const store = await createOrConnectStoreController(opts)
+  const store = opts.storeControllerAndDir ?? await createOrConnectStoreController(opts)
 
-  const workspacePackages: WorkspacePackages = cmdFullName !== 'unlink'
-    ? arrayOfWorkspacePackagesToMap(allProjects) as WorkspacePackages
-    : {}
+  const workspacePackages: WorkspacePackages = arrayOfWorkspacePackagesToMap(allProjects) as WorkspacePackages
   const targetDependenciesField = getSaveType(opts)
+  const rootManifestDir = (opts.lockfileDir ?? opts.dir) as ProjectRootDir
   const installOpts = Object.assign(opts, {
-    ...getOptionsFromRootManifest(manifestsByPath[opts.lockfileDir ?? opts.dir]?.manifest ?? {}),
+    ...getOptionsFromRootManifest(rootManifestDir, manifestsByPath[rootManifestDir]?.manifest ?? {}),
     allProjects: getAllProjects(manifestsByPath, opts.allProjectsGraph, opts.sort),
     linkWorkspacePackagesDepth: opts.linkWorkspacePackages === 'deep' ? Infinity : opts.linkWorkspacePackages ? 0 : -1,
     ownLifecycleHooksStdio: 'pipe',
     peer: opts.savePeer,
-    pruneLockfileImporters: ((opts.ignoredPackages == null) || opts.ignoredPackages.size === 0) &&
-      pkgs.length === allProjects.length,
+    pruneLockfileImporters: opts.pruneLockfileImporters ??
+      (((opts.ignoredPackages == null) || opts.ignoredPackages.size === 0) &&
+        pkgs.length === allProjects.length),
     storeController: store.ctrl,
     storeDir: store.dir,
     targetDependenciesField,
@@ -153,7 +171,7 @@ export async function recursive (
   let updateMatch: UpdateDepsMatcher | null
   if (cmdFullName === 'update') {
     if (params.length === 0) {
-      const ignoreDeps = manifestsByPath[opts.workspaceDir]?.manifest?.pnpm?.updateConfig?.ignoreDependencies
+      const ignoreDeps = manifestsByPath[opts.workspaceDir as ProjectRootDir]?.manifest?.pnpm?.updateConfig?.ignoreDependencies
       if (ignoreDeps?.length) {
         params = makeIgnorePatterns(ignoreDeps)
       }
@@ -167,7 +185,7 @@ export async function recursive (
     let importers = getImporters(opts)
     const calculatedRepositoryRoot = await fs.realpath(calculateRepositoryRoot(opts.workspaceDir, importers.map(x => x.rootDir)))
     const isFromWorkspace = isSubdir.bind(null, calculatedRepositoryRoot)
-    importers = await pFilter(importers, async ({ rootDir }: { rootDir: string }) => isFromWorkspace(await fs.realpath(rootDir)))
+    importers = await pFilter(importers, async ({ rootDirRealPath }) => isFromWorkspace(rootDirRealPath))
     if (importers.length === 0) return true
     let mutation!: string
     switch (cmdFullName) {
@@ -181,12 +199,11 @@ export async function recursive (
       mutation = (params.length === 0 && !updateToLatest ? 'install' : 'installSome')
       break
     }
-    const writeProjectManifests = [] as Array<(manifest: ProjectManifest) => Promise<void>>
     const mutatedImporters = [] as MutatedProject[]
     await Promise.all(importers.map(async ({ rootDir }) => {
       const localConfig = await memReadLocalConfig(rootDir)
       const modulesDir = localConfig.modulesDir ?? opts.modulesDir
-      const { manifest, writeProjectManifest } = manifestsByPath[rootDir]
+      const { manifest } = manifestsByPath[rootDir]
       let currentInput = [...params]
       if (updateMatch != null) {
         currentInput = matchDependencies(updateMatch, manifest, includeDirect)
@@ -195,16 +212,8 @@ export async function recursive (
           return
         }
       }
-      if (updateToLatest) {
-        if (!params || (params.length === 0)) {
-          currentInput = updateToLatestSpecsFromManifest(manifest, includeDirect)
-        } else {
-          currentInput = createLatestSpecs(currentInput, manifest)
-          if (currentInput.length === 0) {
-            installOpts.pruneLockfileImporters = false
-            return
-          }
-        }
+      if (updateToLatest && (!params || (params.length === 0))) {
+        currentInput = Object.keys(filterDependenciesByType(manifest, includeDirect))
       }
       if (opts.workspace) {
         if (!currentInput || (currentInput.length === 0)) {
@@ -213,7 +222,6 @@ export async function recursive (
           currentInput = createWorkspaceSpecs(currentInput, workspacePackages)
         }
       }
-      writeProjectManifests.push(writeProjectManifest)
       switch (mutation) {
       case 'uninstallSome':
         mutatedImporters.push({
@@ -240,6 +248,7 @@ export async function recursive (
           update: opts.update,
           updateMatching: opts.updateMatching,
           updatePackageManifest: opts.updatePackageManifest,
+          updateToLatest: opts.latest,
         } as MutatedProject)
         return
       case 'install':
@@ -251,49 +260,42 @@ export async function recursive (
           update: opts.update,
           updateMatching: opts.updateMatching,
           updatePackageManifest: opts.updatePackageManifest,
+          updateToLatest: opts.latest,
         } as MutatedProject)
       }
     }))
-    if (!opts.selectedProjectsGraph[opts.workspaceDir] && manifestsByPath[opts.workspaceDir] != null) {
-      const { writeProjectManifest } = manifestsByPath[opts.workspaceDir]
-      writeProjectManifests.push(writeProjectManifest)
+    if (!opts.selectedProjectsGraph[opts.workspaceDir as ProjectRootDir] && manifestsByPath[opts.workspaceDir as ProjectRootDir] != null) {
       mutatedImporters.push({
         mutation: 'install',
-        rootDir: opts.workspaceDir,
+        rootDir: opts.workspaceDir as ProjectRootDir,
       })
-    }
-    if (opts.dedupePeerDependents) {
-      for (const rootDir of Object.keys(opts.allProjectsGraph)) {
-        if (opts.selectedProjectsGraph[rootDir] || rootDir === opts.workspaceDir) continue
-        const { writeProjectManifest } = manifestsByPath[rootDir]
-        writeProjectManifests.push(writeProjectManifest)
-        mutatedImporters.push({
-          mutation: 'install',
-          rootDir,
-        })
-      }
     }
     if ((mutatedImporters.length === 0) && cmdFullName === 'update' && opts.depth === 0) {
       throw new PnpmError('NO_PACKAGE_IN_DEPENDENCIES',
         'None of the specified packages were found in the dependencies of any of the projects.')
     }
-    const { updatedProjects: mutatedPkgs } = await mutateModules(mutatedImporters, {
+    const { updatedProjects: mutatedPkgs, ignoredBuilds } = await mutateModules(mutatedImporters, {
       ...installOpts,
       storeController: store.ctrl,
     })
     if (opts.save !== false) {
       await Promise.all(
         mutatedPkgs
-          .map(async ({ originalManifest, manifest }, index) => writeProjectManifests[index](originalManifest ?? manifest))
+          .map(async ({ originalManifest, manifest, rootDir }) => {
+            return manifestsByPath[rootDir].writeProjectManifest(originalManifest ?? manifest)
+          })
       )
+    }
+    if (opts.strictDepBuilds && ignoredBuilds?.length) {
+      throw new IgnoredBuildsError(ignoredBuilds)
     }
     return true
   }
 
-  const pkgPaths = Object.keys(opts.selectedProjectsGraph).sort()
+  const pkgPaths = (Object.keys(opts.selectedProjectsGraph) as ProjectRootDir[]).sort()
 
   const limitInstallation = pLimit(opts.workspaceConcurrency ?? 4)
-  await Promise.all(pkgPaths.map(async (rootDir: string) =>
+  await Promise.all(pkgPaths.map(async (rootDir) =>
     limitInstallation(async () => {
       const hooks = opts.ignorePnpmfile
         ? {}
@@ -317,13 +319,8 @@ export async function recursive (
           currentInput = matchDependencies(updateMatch, manifest, includeDirect)
           if (currentInput.length === 0) return
         }
-        if (updateToLatest) {
-          if (!params || (params.length === 0)) {
-            currentInput = updateToLatestSpecsFromManifest(manifest, includeDirect)
-          } else {
-            currentInput = createLatestSpecs(currentInput, manifest)
-            if (currentInput.length === 0) return
-          }
+        if (updateToLatest && (!params || (params.length === 0))) {
+          currentInput = Object.keys(filterDependenciesByType(manifest, includeDirect))
         }
         if (opts.workspace) {
           if (!currentInput || (currentInput.length === 0)) {
@@ -333,13 +330,24 @@ export async function recursive (
           }
         }
 
-        let action!: any // eslint-disable-line @typescript-eslint/no-explicit-any
+        type ActionOpts =
+          & Omit<InstallOptions, 'allProjects'>
+          & OptionsFromRootManifest
+          & Project
+          & Pick<Config, 'bin'>
+          & { pinnedVersion: 'major' | 'minor' | 'patch' }
+
+        interface ActionResult {
+          updatedManifest: ProjectManifest
+          ignoredBuilds: string[] | undefined
+        }
+
+        type ActionFunction = (manifest: PackageManifest | ProjectManifest, opts: ActionOpts) => Promise<ActionResult>
+
+        let action: ActionFunction
         switch (cmdFullName) {
-        case 'unlink':
-          action = (currentInput.length === 0 ? unlink : unlinkPkgs.bind(null, currentInput))
-          break
         case 'remove':
-          action = async (manifest: PackageManifest, opts: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+          action = async (manifest, opts) => {
             const mutationResult = await mutateModules([
               {
                 dependencyNames: currentInput,
@@ -347,23 +355,24 @@ export async function recursive (
                 rootDir,
               },
             ], opts)
-            return mutationResult.updatedProjects[0].manifest
+            return { updatedManifest: mutationResult.updatedProjects[0].manifest, ignoredBuilds: mutationResult.ignoredBuilds }
           }
           break
         default:
           action = currentInput.length === 0
             ? install
-            : async (manifest: PackageManifest, opts: any) => addDependenciesToPackage(manifest, currentInput, opts) // eslint-disable-line @typescript-eslint/no-explicit-any
+            : async (manifest, opts) => addDependenciesToPackage(manifest, currentInput, opts)
           break
         }
 
         const localConfig = await memReadLocalConfig(rootDir)
-        const newManifest = await action(
+        const { updatedManifest: newManifest, ignoredBuilds } = await action(
           manifest,
           {
             ...installOpts,
             ...localConfig,
-            ...getOptionsFromRootManifest(manifest),
+            ...getOptionsFromRootManifest(rootDir, manifest),
+            ...opts.allProjectsGraph[rootDir]?.package,
             bin: path.join(rootDir, 'node_modules', '.bin'),
             dir: rootDir,
             hooks,
@@ -381,6 +390,9 @@ export async function recursive (
         )
         if (opts.save !== false) {
           await writeProjectManifest(newManifest)
+        }
+        if (opts.strictDepBuilds && ignoredBuilds?.length) {
+          throw new IgnoredBuildsError(ignoredBuilds)
         }
         result[rootDir].status = 'passed'
       } catch (err: any) { // eslint-disable-line
@@ -406,13 +418,13 @@ export async function recursive (
     !opts.lockfileOnly && !opts.ignoreScripts && (
       cmdFullName === 'add' ||
       cmdFullName === 'install' ||
-      cmdFullName === 'update' ||
-      cmdFullName === 'unlink'
+      cmdFullName === 'update'
     )
   ) {
     await rebuild.handler({
       ...opts,
       pending: opts.pending === true,
+      skipIfHasSideEffectsCache: true,
     }, [])
   }
 
@@ -426,35 +438,10 @@ export async function recursive (
   return true
 }
 
-async function unlink (manifest: ProjectManifest, opts: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-  return mutateModules(
-    [
-      {
-        mutation: 'unlink',
-        rootDir: opts.dir,
-      },
-    ],
-    opts
-  )
-}
-
-async function unlinkPkgs (dependencyNames: string[], manifest: ProjectManifest, opts: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-  return mutateModules(
-    [
-      {
-        dependencyNames,
-        mutation: 'unlinkSome',
-        rootDir: opts.dir,
-      },
-    ],
-    opts
-  )
-}
-
 function calculateRepositoryRoot (
   workspaceDir: string,
   projectDirs: string[]
-) {
+): string {
   // assume repo root is workspace dir
   let relativeRepoRoot = '.'
   for (const rootDir of projectDirs) {
@@ -474,7 +461,7 @@ export function matchDependencies (
   match: (input: string) => string | null,
   manifest: ProjectManifest,
   include: IncludedDependencies
-) {
+): string[] {
   const deps = Object.keys(filterDependenciesByType(manifest, include))
   const matchedDeps = []
   for (const dep of deps) {
@@ -491,20 +478,29 @@ export function createMatcher (params: string[]): UpdateDepsMatcher {
   const patterns: string[] = []
   const specs: string[] = []
   for (const param of params) {
-    const atIndex = param.indexOf('@', param[0] === '!' ? 2 : 1)
-    if (atIndex === -1) {
-      patterns.push(param)
-      specs.push('')
-    } else {
-      patterns.push(param.slice(0, atIndex))
-      specs.push(param.slice(atIndex + 1))
-    }
+    const { pattern, versionSpec } = parseUpdateParam(param)
+    patterns.push(pattern)
+    specs.push(versionSpec ?? '')
   }
   const matcher = createMatcherWithIndex(patterns)
   return (depName: string) => {
     const index = matcher(depName)
     if (index === -1) return null
     return specs[index]
+  }
+}
+
+export function parseUpdateParam (param: string): { pattern: string, versionSpec: string | undefined } {
+  const atIndex = param.indexOf('@', param[0] === '!' ? 2 : 1)
+  if (atIndex === -1) {
+    return {
+      pattern: param,
+      versionSpec: undefined,
+    }
+  }
+  return {
+    pattern: param.slice(0, atIndex),
+    versionSpec: param.slice(atIndex + 1),
   }
 }
 
@@ -515,27 +511,33 @@ export function makeIgnorePatterns (ignoredDependencies: string[]): string[] {
 function getAllProjects (manifestsByPath: ManifestsByPath, allProjectsGraph: ProjectsGraph, sort?: boolean): ProjectOptions[] {
   const chunks = sort !== false
     ? sortPackages(allProjectsGraph)
-    : [Object.keys(allProjectsGraph).sort()]
-  return chunks.map((prefixes: string[], buildIndex) => prefixes.map((rootDir) => ({
-    buildIndex,
-    manifest: manifestsByPath[rootDir].manifest,
-    rootDir,
-  }))).flat()
+    : [(Object.keys(allProjectsGraph) as ProjectRootDir[]).sort()]
+  return chunks.map((prefixes, buildIndex) => prefixes.map((rootDir) => {
+    const { rootDirRealPath, modulesDir } = allProjectsGraph[rootDir].package
+    return {
+      buildIndex,
+      manifest: manifestsByPath[rootDir].manifest,
+      rootDir,
+      rootDirRealPath,
+      modulesDir,
+    }
+  })).flat()
 }
 
-interface ManifestsByPath { [dir: string]: Omit<Project, 'dir'> }
+interface ManifestsByPath { [dir: string]: Omit<Project, 'rootDir' | 'rootDirRealPath'> }
 
-function getManifestsByPath (projects: Project[]): Record<string, Omit<Project, 'dir'>> {
-  return projects.reduce((manifestsByPath, { dir, manifest, writeProjectManifest }) => {
-    manifestsByPath[dir] = { manifest, writeProjectManifest }
-    return manifestsByPath
-  }, {} as Record<string, Omit<Project, 'dir'>>)
+function getManifestsByPath (projects: Project[]): Record<ProjectRootDir, Omit<Project, 'rootDir' | 'rootDirRealPath'>> {
+  const manifestsByPath: Record<string, Omit<Project, 'rootDir' | 'rootDirRealPath'>> = {}
+  for (const { rootDir, manifest, writeProjectManifest } of projects) {
+    manifestsByPath[rootDir] = { manifest, writeProjectManifest }
+  }
+  return manifestsByPath
 }
 
-function getImporters (opts: Pick<RecursiveOptions, 'selectedProjectsGraph' | 'ignoredPackages'>) {
-  let rootDirs = Object.keys(opts.selectedProjectsGraph)
+function getImporters (opts: Pick<RecursiveOptions, 'selectedProjectsGraph' | 'ignoredPackages'>): Array<{ rootDir: ProjectRootDir, rootDirRealPath: ProjectRootDirRealPath }> {
+  let rootDirs = Object.keys(opts.selectedProjectsGraph) as ProjectRootDir[]
   if (opts.ignoredPackages != null) {
     rootDirs = rootDirs.filter((rootDir) => !opts.ignoredPackages!.has(rootDir))
   }
-  return rootDirs.map((rootDir) => ({ rootDir }))
+  return rootDirs.map((rootDir) => ({ rootDir, rootDirRealPath: opts.selectedProjectsGraph[rootDir].package.rootDirRealPath }))
 }

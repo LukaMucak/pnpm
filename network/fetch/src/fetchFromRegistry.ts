@@ -1,4 +1,5 @@
 import { URL } from 'url'
+import { type SslConfig } from '@pnpm/types'
 import { type FetchFromRegistry } from '@pnpm/fetching-types'
 import { getAgent, type AgentOptions } from '@pnpm/network.agent'
 import { fetch, isRedirect, type Response, type RequestInfo, type RequestInit } from './fetch'
@@ -9,11 +10,11 @@ const ABBREVIATED_DOC = 'application/vnd.npm.install-v1+json; q=1.0, application
 const JSON_DOC = 'application/json'
 const MAX_FOLLOWED_REDIRECTS = 20
 
-export type FetchWithAgentOptions = RequestInit & {
+export interface FetchWithAgentOptions extends RequestInit {
   agentOptions: AgentOptions
 }
 
-export function fetchWithAgent (url: RequestInfo, opts: FetchWithAgentOptions) {
+export function fetchWithAgent (url: RequestInfo, opts: FetchWithAgentOptions): Promise<Response> {
   const agent = getAgent(url.toString(), {
     ...opts.agentOptions,
     strictSsl: opts.agentOptions.strictSsl ?? true,
@@ -29,12 +30,13 @@ export function fetchWithAgent (url: RequestInfo, opts: FetchWithAgentOptions) {
 
 export type { AgentOptions }
 
-export function createFetchFromRegistry (
-  defaultOpts: {
-    fullMetadata?: boolean
-    userAgent?: string
-  } & AgentOptions
-): FetchFromRegistry {
+export interface CreateFetchFromRegistryOptions extends AgentOptions {
+  fullMetadata?: boolean
+  userAgent?: string
+  sslConfigs?: Record<string, SslConfig>
+}
+
+export function createFetchFromRegistry (defaultOpts: CreateFetchFromRegistryOptions): FetchFromRegistry {
   return async (url, opts): Promise<Response> => {
     const headers = {
       'user-agent': USER_AGENT,
@@ -59,9 +61,13 @@ export function createFetchFromRegistry (
       // We should pass a URL object to node-fetch till this is not resolved:
       // https://github.com/bitinn/node-fetch/issues/245
       const response = await fetchWithAgent(urlObject, {
-        agentOptions,
+        agentOptions: {
+          ...agentOptions,
+          clientCertificates: defaultOpts.sslConfigs,
+        },
         // if verifying integrity, node-fetch must not decompress
         compress: opts?.compress ?? false,
+        method: opts?.method,
         headers,
         redirect: 'manual',
         retry: opts?.retry,
@@ -82,13 +88,19 @@ export function createFetchFromRegistry (
   }
 }
 
+interface Headers {
+  accept: string
+  authorization?: string
+  'user-agent'?: string
+}
+
 function getHeaders (
   opts: {
     auth?: string
     fullMetadata?: boolean
     userAgent?: string
   }
-) {
+): Headers {
   const headers: { accept: string, authorization?: string, 'user-agent'?: string } = {
     accept: opts.fullMetadata === true ? JSON_DOC : ABBREVIATED_DOC,
   }

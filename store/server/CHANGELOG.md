@@ -1,5 +1,304 @@
 # @pnpm/server
 
+## 1001.0.2
+
+### Patch Changes
+
+- Updated dependencies [8a9f3a4]
+- Updated dependencies [5b73df1]
+- Updated dependencies [9c3dd03]
+- Updated dependencies [5b73df1]
+  - @pnpm/store-controller-types@1003.0.0
+  - @pnpm/logger@1001.0.0
+  - @pnpm/types@1000.5.0
+  - @pnpm/fetch@1000.2.1
+
+## 1001.0.1
+
+### Patch Changes
+
+- @pnpm/store-controller-types@1002.0.1
+
+## 1001.0.0
+
+### Major Changes
+
+- 72cff38: The resolving function now takes a `registries` object, so it finds the required registry itself instead of receiving it from package requester.
+
+### Patch Changes
+
+- Updated dependencies [750ae7d]
+- Updated dependencies [72cff38]
+- Updated dependencies [750ae7d]
+  - @pnpm/types@1000.4.0
+  - @pnpm/store-controller-types@1002.0.0
+  - @pnpm/fetch@1000.2.0
+
+## 1000.0.9
+
+### Patch Changes
+
+- Updated dependencies [5f7be64]
+- Updated dependencies [5f7be64]
+  - @pnpm/types@1000.3.0
+  - @pnpm/fetch@1000.1.6
+  - @pnpm/store-controller-types@1001.0.5
+
+## 1000.0.8
+
+### Patch Changes
+
+- @pnpm/store-controller-types@1001.0.4
+
+## 1000.0.7
+
+### Patch Changes
+
+- Updated dependencies [a5e4965]
+  - @pnpm/types@1000.2.1
+  - @pnpm/fetch@1000.1.5
+  - @pnpm/store-controller-types@1001.0.3
+
+## 1000.0.6
+
+### Patch Changes
+
+- Updated dependencies [8fcc221]
+  - @pnpm/types@1000.2.0
+  - @pnpm/fetch@1000.1.4
+  - @pnpm/store-controller-types@1001.0.2
+
+## 1000.0.5
+
+### Patch Changes
+
+- Updated dependencies [b562deb]
+  - @pnpm/types@1000.1.1
+  - @pnpm/fetch@1000.1.3
+  - @pnpm/store-controller-types@1001.0.1
+
+## 1000.0.4
+
+### Patch Changes
+
+- Updated dependencies [dde650b]
+  - @pnpm/store-controller-types@1001.0.0
+
+## 1000.0.3
+
+### Patch Changes
+
+- Updated dependencies [9591a18]
+  - @pnpm/types@1000.1.0
+  - @pnpm/fetch@1000.1.2
+  - @pnpm/store-controller-types@1000.1.1
+
+## 1000.0.2
+
+### Patch Changes
+
+- @pnpm/fetch@1000.1.1
+
+## 1000.0.1
+
+### Patch Changes
+
+- Updated dependencies [6483b64]
+- Updated dependencies [b0f3c71]
+  - @pnpm/store-controller-types@1000.1.0
+  - @pnpm/fetch@1000.1.0
+
+## 18.2.6
+
+### Patch Changes
+
+- Updated dependencies [d500d9f]
+  - @pnpm/types@12.2.0
+  - @pnpm/fetch@8.0.7
+  - @pnpm/store-controller-types@18.1.6
+
+## 18.2.5
+
+### Patch Changes
+
+- Updated dependencies [7ee59a1]
+  - @pnpm/types@12.1.0
+  - @pnpm/fetch@8.0.6
+  - @pnpm/store-controller-types@18.1.5
+
+## 18.2.4
+
+### Patch Changes
+
+- Updated dependencies [cb006df]
+  - @pnpm/types@12.0.0
+  - @pnpm/fetch@8.0.5
+  - @pnpm/store-controller-types@18.1.4
+
+## 18.2.3
+
+### Patch Changes
+
+- Updated dependencies [0ef168b]
+  - @pnpm/types@11.1.0
+  - @pnpm/fetch@8.0.4
+  - @pnpm/store-controller-types@18.1.3
+
+## 18.2.2
+
+### Patch Changes
+
+- Updated dependencies [dd00eeb]
+- Updated dependencies
+  - @pnpm/types@11.0.0
+  - @pnpm/store-controller-types@18.1.2
+  - @pnpm/fetch@8.0.3
+
+## 18.2.1
+
+### Patch Changes
+
+- Updated dependencies [13e55b2]
+  - @pnpm/types@10.1.1
+  - @pnpm/fetch@8.0.2
+  - @pnpm/store-controller-types@18.1.1
+
+## 18.2.0
+
+### Minor Changes
+
+- 0c08e1c: Added a new function for clearing resolution cache.
+
+### Patch Changes
+
+- Updated dependencies [0c08e1c]
+  - @pnpm/store-controller-types@18.1.0
+
+## 18.1.1
+
+### Patch Changes
+
+- Updated dependencies [45f4262]
+  - @pnpm/types@10.1.0
+  - @pnpm/fetch@8.0.1
+  - @pnpm/store-controller-types@18.0.1
+
+## 18.1.0
+
+### Minor Changes
+
+- 9719a42: New setting called `virtual-store-dir-max-length` added to modify the maximum allowed length of the directories inside `node_modules/.pnpm`. The default length is set to 120 characters. This setting is particularly useful on Windows, where there is a limit to the maximum length of a file path [#7355](https://github.com/pnpm/pnpm/issues/7355).
+
+## 18.0.0
+
+### Major Changes
+
+- cdd8365: Package ID does not contain the registry domain.
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+
+### Patch Changes
+
+- Updated dependencies [7733f3a]
+- Updated dependencies [43cdd87]
+- Updated dependencies [730929e]
+  - @pnpm/types@10.0.0
+  - @pnpm/fetch@8.0.0
+  - @pnpm/store-controller-types@18.0.0
+
+## 17.0.7
+
+### Patch Changes
+
+- Updated dependencies [31054a63e]
+  - @pnpm/store-controller-types@17.2.0
+
+## 17.0.6
+
+### Patch Changes
+
+- Updated dependencies [4d34684f1]
+  - @pnpm/types@9.4.2
+  - @pnpm/store-controller-types@17.1.4
+  - @pnpm/fetch@7.0.7
+
+## 17.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @pnpm/types@9.4.1
+  - @pnpm/store-controller-types@17.1.3
+  - @pnpm/fetch@7.0.6
+
+## 17.0.4
+
+### Patch Changes
+
+- Updated dependencies [291607c5a]
+  - @pnpm/store-controller-types@17.1.2
+
+## 17.0.3
+
+### Patch Changes
+
+- Updated dependencies [7ea45afbe]
+  - @pnpm/store-controller-types@17.1.1
+
+## 17.0.2
+
+### Patch Changes
+
+- Updated dependencies [43ce9e4a6]
+  - @pnpm/store-controller-types@17.1.0
+  - @pnpm/types@9.4.0
+  - @pnpm/fetch@7.0.5
+
+## 17.0.1
+
+### Patch Changes
+
+- Updated dependencies [d774a3196]
+  - @pnpm/types@9.3.0
+  - @pnpm/store-controller-types@17.0.1
+  - @pnpm/fetch@7.0.4
+
+## 17.0.0
+
+### Major Changes
+
+- 9caa33d53: `fromStore` replaced with `resolvedFrom`.
+
+### Patch Changes
+
+- Updated dependencies [9caa33d53]
+- Updated dependencies [9caa33d53]
+  - @pnpm/store-controller-types@17.0.0
+
+## 16.0.2
+
+### Patch Changes
+
+- Updated dependencies [03cdccc6e]
+  - @pnpm/store-controller-types@16.1.0
+
+## 16.0.1
+
+### Patch Changes
+
+- 548768e09: Fix a bug causing the pnpm server to hang if a tarball worker was requested while another worker was exiting [#7041](https://github.com/pnpm/pnpm/pull/7041).
+  - @pnpm/store-controller-types@16.0.1
+
+## 16.0.0
+
+### Major Changes
+
+- 494f87544: Breaking changes to the API.
+
+### Patch Changes
+
+- Updated dependencies [494f87544]
+  - @pnpm/store-controller-types@16.0.0
+
 ## 15.0.3
 
 ### Patch Changes

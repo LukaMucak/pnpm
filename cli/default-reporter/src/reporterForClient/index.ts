@@ -9,6 +9,7 @@ import { reportExecutionTime } from './reportExecutionTime'
 import { reportDeprecations } from './reportDeprecations'
 import { reportHooks } from './reportHooks'
 import { reportInstallChecks } from './reportInstallChecks'
+import { reportInstallingConfigDeps } from './reportInstallingConfigDeps'
 import { reportLifecycleScripts } from './reportLifecycleScripts'
 import { reportMisc, LOG_LEVEL_NUMBER } from './reportMisc'
 import { reportPeerDependencyIssues } from './reportPeerDependencyIssues'
@@ -19,6 +20,7 @@ import { reportSkippedOptionalDependencies } from './reportSkippedOptionalDepend
 import { reportStats } from './reportStats'
 import { reportSummary, type FilterPkgsDiff } from './reportSummary'
 import { reportUpdateCheck } from './reportUpdateCheck'
+import { type PeerDependencyRules } from '@pnpm/types'
 
 const PRINT_EXECUTION_TIME_IN_COMMANDS = {
   install: true,
@@ -32,6 +34,7 @@ export function reporterForClient (
     context: Rx.Observable<logs.ContextLog>
     fetchingProgress: Rx.Observable<logs.FetchingProgressLog>
     executionTime: Rx.Observable<logs.ExecutionTimeLog>
+    ignoredScripts: Rx.Observable<logs.IgnoredScriptsLog>
     progress: Rx.Observable<logs.ProgressLog>
     stage: Rx.Observable<logs.StageLog>
     deprecation: Rx.Observable<logs.DeprecationLog>
@@ -39,6 +42,7 @@ export function reporterForClient (
     lifecycle: Rx.Observable<logs.LifecycleLog>
     stats: Rx.Observable<logs.StatsLog>
     installCheck: Rx.Observable<logs.InstallCheckLog>
+    installingConfigDeps: Rx.Observable<logs.InstallingConfigDepsLog>
     registry: Rx.Observable<logs.RegistryLog>
     root: Rx.Observable<logs.RootLog>
     packageManifest: Rx.Observable<logs.PackageManifestLog>
@@ -58,6 +62,7 @@ export function reporterForClient (
     config?: Config
     env: NodeJS.ProcessEnv
     filterPkgsDiff?: FilterPkgsDiff
+    peerDependencyRules?: PeerDependencyRules
     process: NodeJS.Process
     isRecursive: boolean
     logLevel?: LogLevel
@@ -67,6 +72,9 @@ export function reporterForClient (
     throttleProgress?: number
     width?: number
     hideAddedPkgsProgress?: boolean
+    hideProgressPrefix?: boolean
+    hideLifecycleOutput?: boolean
+    hideLifecyclePrefix?: boolean
   }
 ): Array<Rx.Observable<Rx.Observable<{ msg: string }>>> {
   const width = opts.width ?? process.stdout.columns ?? 80
@@ -76,12 +84,6 @@ export function reporterForClient (
     : undefined
 
   const outputs: Array<Rx.Observable<Rx.Observable<{ msg: string }>>> = [
-    reportLifecycleScripts(log$, {
-      appendOnly: opts.appendOnly === true || opts.streamLifecycleOutput,
-      aggregateOutput: opts.aggregateOutput,
-      cwd,
-      width,
-    }),
     reportMisc(
       log$,
       {
@@ -90,61 +92,73 @@ export function reporterForClient (
         cwd,
         logLevel: opts.logLevel,
         zoomOutCurrent: opts.isRecursive,
+        peerDependencyRules: opts.peerDependencyRules,
       }
     ),
-    reportInstallChecks(log$.installCheck, { cwd }),
-    reportScope(log$.scope, { isRecursive: opts.isRecursive, cmd: opts.cmd }),
-    reportSkippedOptionalDependencies(log$.skippedOptionalDependency, { cwd }),
-    reportHooks(log$.hook, { cwd, isRecursive: opts.isRecursive }),
-    reportUpdateCheck(log$.updateCheck, opts),
   ]
-
-  if (opts.cmd !== 'dlx') {
-    outputs.push(reportContext(log$, { cwd }))
-  }
-
-  if (opts.cmd in PRINT_EXECUTION_TIME_IN_COMMANDS) {
-    outputs.push(reportExecutionTime(log$.executionTime))
-  }
 
   // logLevelNumber: 0123 = error warn info debug
   const logLevelNumber = LOG_LEVEL_NUMBER[opts.logLevel ?? 'info'] ?? LOG_LEVEL_NUMBER['info']
+  const showInfo = logLevelNumber >= LOG_LEVEL_NUMBER.info
 
   if (logLevelNumber >= LOG_LEVEL_NUMBER.warn) {
     outputs.push(
-      reportPeerDependencyIssues(log$),
-      reportDeprecations(log$.deprecation, { cwd, isRecursive: opts.isRecursive }),
+      reportPeerDependencyIssues(log$, opts.peerDependencyRules),
+      reportDeprecations({
+        deprecation: log$.deprecation,
+        stage: log$.stage,
+      }, { cwd, isRecursive: opts.isRecursive }),
       reportRequestRetry(log$.requestRetry)
     )
   }
 
-  if (logLevelNumber >= LOG_LEVEL_NUMBER.info) {
+  if (showInfo) {
+    if (opts.cmd in PRINT_EXECUTION_TIME_IN_COMMANDS) {
+      outputs.push(reportExecutionTime(log$.executionTime))
+    }
+    if (opts.cmd !== 'dlx') {
+      outputs.push(reportContext(log$, { cwd }))
+    }
     outputs.push(
+      reportLifecycleScripts(log$, {
+        appendOnly: (opts.appendOnly === true || opts.streamLifecycleOutput) && !opts.hideLifecycleOutput,
+        aggregateOutput: opts.aggregateOutput,
+        hideLifecyclePrefix: opts.hideLifecyclePrefix,
+        cwd,
+        width,
+      }),
+      reportInstallChecks(log$.installCheck, { cwd }),
+      reportInstallingConfigDeps(log$.installingConfigDeps),
+      reportScope(log$.scope, { isRecursive: opts.isRecursive, cmd: opts.cmd }),
+      reportSkippedOptionalDependencies(log$.skippedOptionalDependency, { cwd }),
+      reportHooks(log$.hook, { cwd, isRecursive: opts.isRecursive }),
+      reportUpdateCheck(log$.updateCheck, opts),
       reportProgress(log$, {
         cwd,
         throttle,
         hideAddedPkgsProgress: opts.hideAddedPkgsProgress,
+        hideProgressPrefix: opts.hideProgressPrefix,
       }),
       ...reportStats(log$, {
         cmd: opts.cmd,
         cwd,
         isRecursive: opts.isRecursive,
         width,
+        hideProgressPrefix: opts.hideProgressPrefix,
       })
     )
-  }
-
-  if (!opts.appendOnly) {
-    outputs.push(reportBigTarballProgress(log$))
-  }
-
-  if (!opts.isRecursive) {
-    outputs.push(reportSummary(log$, {
-      cwd,
-      env: opts.env,
-      filterPkgsDiff: opts.filterPkgsDiff,
-      pnpmConfig: opts.pnpmConfig,
-    }))
+    if (!opts.appendOnly) {
+      outputs.push(reportBigTarballProgress(log$))
+    }
+    if (!opts.isRecursive) {
+      outputs.push(reportSummary(log$, {
+        cmd: opts.cmd,
+        cwd,
+        env: opts.env,
+        filterPkgsDiff: opts.filterPkgsDiff,
+        pnpmConfig: opts.pnpmConfig,
+      }))
+    }
   }
 
   return outputs

@@ -1,5 +1,17 @@
 # @pnpm/parse-wanted-dependency
 
+## 1001.0.0
+
+### Major Changes
+
+- 8a9f3a4: `pref` renamed to `bareSpecifier`.
+
+## 6.0.0
+
+### Major Changes
+
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+
 ## 5.0.0
 
 ### Major Changes

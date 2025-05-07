@@ -23,21 +23,25 @@ export function createResolver (
   fetchFromRegistry: FetchFromRegistry,
   getAuthHeader: GetAuthHeader,
   pnpmOpts: ResolverFactoryOptions
-): ResolveFunction {
-  const resolveFromNpm = createNpmResolver(fetchFromRegistry, getAuthHeader, pnpmOpts)
+): { resolve: ResolveFunction, clearCache: () => void } {
+  const { resolveFromNpm, resolveFromJsr, clearCache } = createNpmResolver(fetchFromRegistry, getAuthHeader, pnpmOpts)
   const resolveFromGit = createGitResolver(pnpmOpts)
-  return async (wantedDependency, opts) => {
-    const resolution = await resolveFromNpm(wantedDependency, opts as ResolveFromNpmOptions) ??
-      (wantedDependency.pref && (
-        await resolveFromTarball(wantedDependency as { pref: string }) ??
-        await resolveFromGit(wantedDependency as { pref: string }) ??
-        await resolveFromLocal(wantedDependency as { pref: string }, opts)
-      ))
-    if (!resolution) {
-      throw new PnpmError(
-        'SPEC_NOT_SUPPORTED_BY_ANY_RESOLVER',
-        `${wantedDependency.alias ? wantedDependency.alias + '@' : ''}${wantedDependency.pref ?? ''} isn't supported by any available resolver.`)
-    }
-    return resolution
+  return {
+    resolve: async (wantedDependency, opts) => {
+      const resolution = await resolveFromNpm(wantedDependency, opts as ResolveFromNpmOptions) ??
+        await resolveFromJsr(wantedDependency, opts as ResolveFromNpmOptions) ??
+        (wantedDependency.bareSpecifier && (
+          await resolveFromTarball(fetchFromRegistry, wantedDependency as { bareSpecifier: string }) ??
+          await resolveFromGit(wantedDependency as { bareSpecifier: string }) ??
+          await resolveFromLocal(wantedDependency as { bareSpecifier: string }, opts)
+        ))
+      if (!resolution) {
+        throw new PnpmError(
+          'SPEC_NOT_SUPPORTED_BY_ANY_RESOLVER',
+          `${wantedDependency.alias ? wantedDependency.alias + '@' : ''}${wantedDependency.bareSpecifier ?? ''} isn't supported by any available resolver.`)
+      }
+      return resolution
+    },
+    clearCache,
   }
 }

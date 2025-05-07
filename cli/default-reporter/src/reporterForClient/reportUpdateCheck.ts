@@ -1,4 +1,5 @@
 import { type UpdateCheckLog } from '@pnpm/core-loggers'
+import { detectIfCurrentPkgIsExecutable, isExecutedByCorepack } from '@pnpm/cli-meta'
 import boxen from 'boxen'
 import chalk from 'chalk'
 import * as Rx from 'rxjs'
@@ -8,7 +9,7 @@ import semver from 'semver'
 export function reportUpdateCheck (log$: Rx.Observable<UpdateCheckLog>, opts: {
   env: NodeJS.ProcessEnv
   process: NodeJS.Process
-}) {
+}): Rx.Observable<Rx.Observable<{ msg: string }>> {
   return log$.pipe(
     take(1),
     filter((log) => semver.gt(log.latestVersion, log.currentVersion)),
@@ -21,10 +22,8 @@ export function reportUpdateCheck (log$: Rx.Observable<UpdateCheckLog>, opts: {
       return Rx.of({
         msg: boxen(`\
 Update available! ${chalk.red(log.currentVersion)} → ${chalk.green(log.latestVersion)}.
-${chalk.magenta('Changelog:')} https://github.com/pnpm/pnpm/releases/tag/v${log.latestVersion}
-${updateMessage}
-
-Follow ${chalk.magenta('@pnpmjs')} for updates: https://twitter.com/pnpmjs`,
+${chalk.magenta('Changelog:')} https://pnpm.io/v/${log.latestVersion}
+${updateMessage}`,
         {
           padding: 1,
           margin: 1,
@@ -44,22 +43,18 @@ interface UpdateMessageOptions {
   latestVersion: string
 }
 
-function renderUpdateMessage (opts: UpdateMessageOptions) {
-  if (opts.currentPkgIsExecutable && opts.env.PNPM_HOME) {
-    return 'Run a script from: https://pnpm.io/installation'
-  }
+function renderUpdateMessage (opts: UpdateMessageOptions): string {
   const updateCommand = renderUpdateCommand(opts)
-  return `Run "${chalk.magenta(updateCommand)}" to update.`
+  return `To update, run: ${chalk.magenta(updateCommand)}`
 }
 
-function renderUpdateCommand (opts: UpdateMessageOptions) {
-  if (opts.env.COREPACK_ROOT) {
-    return `corepack prepare pnpm@${opts.latestVersion} --activate`
+function renderUpdateCommand (opts: UpdateMessageOptions): string {
+  if (isExecutedByCorepack(opts.env)) {
+    return `corepack use pnpm@${opts.latestVersion}`
+  }
+  if (opts.env.PNPM_HOME) {
+    return 'pnpm self-update'
   }
   const pkgName = opts.currentPkgIsExecutable ? '@pnpm/exe' : 'pnpm'
   return `pnpm add -g ${pkgName}`
-}
-
-function detectIfCurrentPkgIsExecutable (process: NodeJS.Process) {
-  return process['pkg'] != null
 }

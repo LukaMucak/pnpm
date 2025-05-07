@@ -1,24 +1,30 @@
-import { type ResolveResult } from '@pnpm/resolver-base'
+import { type TarballResolution, type GitResolution, type ResolveResult, type PkgResolutionId } from '@pnpm/resolver-base'
 import git from 'graceful-git'
 import semver from 'semver'
-import { parsePref, type HostedPackageSpec } from './parsePref'
+import { parseBareSpecifier, type HostedPackageSpec } from './parseBareSpecifier'
+import { createGitHostedPkgId } from './createGitHostedPkgId'
+import { type AgentOptions } from '@pnpm/network.agent'
+
+export { createGitHostedPkgId }
 
 export type { HostedPackageSpec }
 
+export type GitResolver = (wantedDependency: {
+  bareSpecifier: string
+}) => Promise<ResolveResult | null>
+
 export function createGitResolver (
-  opts: unknown
-) {
-  return async function resolveGit (
-    wantedDependency: { pref: string }
-  ): Promise<ResolveResult | null> {
-    const parsedSpec = await parsePref(wantedDependency.pref)
+  opts: AgentOptions
+): GitResolver {
+  return async function resolveGit (wantedDependency): Promise<ResolveResult | null> {
+    const parsedSpec = await parseBareSpecifier(wantedDependency.bareSpecifier, opts)
 
     if (parsedSpec == null) return null
 
-    const pref = parsedSpec.gitCommittish == null || parsedSpec.gitCommittish === ''
+    const bareSpecifier = parsedSpec.gitCommittish == null || parsedSpec.gitCommittish === ''
       ? 'HEAD'
       : parsedSpec.gitCommittish
-    const commit = await resolveRef(parsedSpec.fetchSpec, pref, parsedSpec.gitRange)
+    const commit = await resolveRef(parsedSpec.fetchSpec, bareSpecifier, parsedSpec.gitRange)
     let resolution
 
     if ((parsedSpec.hosted != null) && !isSsh(parsedSpec.fetchSpec)) {
@@ -29,7 +35,7 @@ export function createGitResolver (
       const tarball = hosted.tarball?.()
 
       if (tarball) {
-        resolution = { tarball }
+        resolution = { tarball } as TarballResolution
       }
     }
 
@@ -38,26 +44,37 @@ export function createGitResolver (
         commit,
         repo: parsedSpec.fetchSpec,
         type: 'git',
-      } as ({ type: string } & object)
+      } as GitResolution
+    }
+
+    if (parsedSpec.path) {
+      resolution.path = parsedSpec.path
+    }
+
+    let id: PkgResolutionId
+    if ('tarball' in resolution) {
+      id = resolution.tarball as PkgResolutionId
+      if (resolution.path) {
+        id = `${id}#path:${resolution.path}` as PkgResolutionId
+      }
+    } else {
+      id = createGitHostedPkgId(resolution)
     }
 
     return {
-      id: parsedSpec.fetchSpec
-        .replace(/^.*:\/\/(git@)?/, '')
-        .replace(/:/g, '+')
-        .replace(/\.git$/, '') + '/' + commit,
-      normalizedPref: parsedSpec.normalizedPref,
+      id,
+      normalizedBareSpecifier: parsedSpec.normalizedBareSpecifier,
       resolution,
       resolvedVia: 'git-repository',
     }
   }
 }
 
-function resolveVTags (vTags: string[], range: string) {
+function resolveVTags (vTags: string[], range: string): string | null {
   return semver.maxSatisfying(vTags, range, true)
 }
 
-async function getRepoRefs (repo: string, ref: string | null) {
+async function getRepoRefs (repo: string, ref: string | null): Promise<Record<string, string>> {
   const gitArgs = [repo]
   if (ref !== 'HEAD') {
     gitArgs.unshift('--refs')
@@ -67,15 +84,15 @@ async function getRepoRefs (repo: string, ref: string | null) {
   }
   // graceful-git by default retries 10 times, reduce to single retry
   const result = await git(['ls-remote', ...gitArgs], { retries: 1 })
-  const refs = result.stdout.split('\n').reduce((obj: Record<string, string>, line: string) => {
+  const refs: Record<string, string> = {}
+  for (const line of result.stdout.split('\n')) {
     const [commit, refName] = line.split('\t')
-    obj[refName] = commit
-    return obj
-  }, {})
+    refs[refName] = commit
+  }
   return refs
 }
 
-async function resolveRef (repo: string, ref: string, range?: string) {
+async function resolveRef (repo: string, ref: string, range?: string): Promise<string> {
   if (ref.match(/^[0-9a-f]{7,40}$/) != null) {
     return ref
   }
@@ -83,7 +100,7 @@ async function resolveRef (repo: string, ref: string, range?: string) {
   return resolveRefFromRefs(refs, repo, ref, range)
 }
 
-function resolveRefFromRefs (refs: { [ref: string]: string }, repo: string, ref: string, range?: string) {
+function resolveRefFromRefs (refs: { [ref: string]: string }, repo: string, ref: string, range?: string): string {
   if (!range) {
     const commitId =
       refs[ref] ||
@@ -101,11 +118,11 @@ function resolveRefFromRefs (refs: { [ref: string]: string }, repo: string, ref:
     const vTags =
       Object.keys(refs)
         // using the same semantics of version tags as https://github.com/zkat/pacote
-        .filter((key: string) => /^refs\/tags\/v?(\d+\.\d+\.\d+(?:[-+].+)?)(\^{})?$/.test(key))
+        .filter((key: string) => /^refs\/tags\/v?\d+\.\d+\.\d+(?:[-+].+)?(?:\^\{\})?$/.test(key))
         .map((key: string) => {
           return key
             .replace(/^refs\/tags\//, '')
-            .replace(/\^{}$/, '') // accept annotated tags
+            .replace(/\^\{\}$/, '') // accept annotated tags
         })
         .filter((key: string) => semver.valid(key, true))
     const refVTag = resolveVTags(vTags, range)

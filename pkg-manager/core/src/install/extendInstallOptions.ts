@@ -1,27 +1,31 @@
 import { WANTED_LOCKFILE } from '@pnpm/constants'
+import { type Catalogs } from '@pnpm/catalogs.types'
 import { PnpmError } from '@pnpm/error'
 import { type ProjectOptions } from '@pnpm/get-context'
 import { type HoistingLimits } from '@pnpm/headless'
 import { createReadPackageHook } from '@pnpm/hooks.read-package-hook'
-import { type Lockfile } from '@pnpm/lockfile-file'
+import { type LockfileObject } from '@pnpm/lockfile.fs'
 import { type IncludedDependencies } from '@pnpm/modules-yaml'
 import { normalizeRegistries, DEFAULT_REGISTRIES } from '@pnpm/normalize-registries'
 import { type WorkspacePackages } from '@pnpm/resolver-base'
 import { type StoreController } from '@pnpm/store-controller-types'
 import {
+  type SupportedArchitectures,
   type AllowedDeprecatedVersions,
   type PackageExtension,
-  type PeerDependencyRules,
   type ReadPackageHook,
   type Registries,
+  type PrepareExecutionEnv,
 } from '@pnpm/types'
+import { parseOverrides, type VersionOverride } from '@pnpm/parse-overrides'
 import { pnpmPkgJson } from '../pnpmPkgJson'
 import { type ReporterFunction } from '../types'
 import { type PreResolutionHookContext } from '@pnpm/hooks.types'
 
 export interface StrictInstallOptions {
   autoInstallPeers: boolean
-  forceSharedLockfile: boolean
+  autoInstallPeersFromHighestMatch: boolean
+  catalogs: Catalogs
   frozenLockfile: boolean
   frozenLockfileIfExists: boolean
   enablePnp: boolean
@@ -43,7 +47,7 @@ export interface StrictInstallOptions {
   ignorePackageManifest: boolean
   preferFrozenLockfile: boolean
   saveWorkspaceProtocol: boolean | 'rolling'
-  lockfileCheck?: (prev: Lockfile, next: Lockfile) => void
+  lockfileCheck?: (prev: LockfileObject, next: LockfileObject) => void
   lockfileIncludeTarballUrl: boolean
   preferWorkspacePackages: boolean
   preserveWorkspaceProtocol: boolean
@@ -61,12 +65,17 @@ export interface StrictInstallOptions {
   rawConfig: Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
   verifyStoreIntegrity: boolean
   engineStrict: boolean
+  ignoredBuiltDependencies?: string[]
   neverBuiltDependencies?: string[]
   onlyBuiltDependencies?: string[]
+  onlyBuiltDependenciesFile?: string
   nodeExecPath?: string
   nodeLinker: 'isolated' | 'hoisted' | 'pnp'
-  nodeVersion: string
+  nodeVersion?: string
   packageExtensions: Record<string, PackageExtension>
+  ignoredOptionalDependencies: string[]
+  pnpmfile: string
+  ignorePnpmfile: boolean
   packageManager: {
     name: string
     version: string
@@ -75,14 +84,15 @@ export interface StrictInstallOptions {
   hooks: {
     readPackage?: ReadPackageHook[]
     preResolution?: (ctx: PreResolutionHookContext) => Promise<void>
-    afterAllResolved?: Array<(lockfile: Lockfile) => Lockfile | Promise<Lockfile>>
+    afterAllResolved?: Array<(lockfile: LockfileObject) => LockfileObject | Promise<LockfileObject>>
+    calculatePnpmfileChecksum?: () => Promise<string | undefined>
   }
   sideEffectsCacheRead: boolean
   sideEffectsCacheWrite: boolean
   strictPeerDependencies: boolean
   include: IncludedDependencies
   includeDirect: IncludedDependencies
-  ignoreCurrentPrefs: boolean
+  ignoreCurrentSpecifiers: boolean
   ignoreScripts: boolean
   childConcurrency: number
   userAgent: string
@@ -91,20 +101,24 @@ export interface StrictInstallOptions {
   tag: string
   overrides: Record<string, string>
   ownLifecycleHooksStdio: 'inherit' | 'pipe'
-  workspacePackages: WorkspacePackages
+  // We can automatically calculate these
+  // unless installation runs on a workspace
+  // that doesn't share a lockfile
+  workspacePackages?: WorkspacePackages
   pruneStore: boolean
   virtualStoreDir?: string
   dir: string
   symlink: boolean
   enableModulesDir: boolean
   modulesCacheMaxAge: number
-  peerDependencyRules: PeerDependencyRules
   allowedDeprecatedVersions: AllowedDeprecatedVersions
-  allowNonAppliedPatches: boolean
+  ignorePatchFailures?: boolean
+  allowUnusedPatches: boolean
   preferSymlinkedExecutables: boolean
   resolutionMode: 'highest' | 'time-based' | 'lowest-direct'
   resolvePeersFromWorkspaceRoot: boolean
   ignoreWorkspaceCycles: boolean
+  disallowWorkspaceCycles: boolean
 
   publicHoistPattern: string[] | undefined
   hoistPattern: string[] | undefined
@@ -120,38 +134,59 @@ export interface StrictInstallOptions {
   allProjects: ProjectOptions[]
   resolveSymlinksInInjectedDirs: boolean
   dedupeDirectDeps: boolean
+  dedupeInjectedDeps: boolean
   dedupePeerDependents: boolean
   extendNodePath: boolean
   excludeLinksFromLockfile: boolean
   confirmModulesPurge: boolean
+  /**
+   * Don't relink local directory dependencies if they are not hard linked from the local directory.
+   *
+   * This option was added to fix an issue with Bit CLI.
+   * Bit compile adds dist directories to the injected dependencies, so if pnpm were to relink them,
+   * the dist directories would be deleted.
+   *
+   * The option might be used in the future to improve performance.
+   */
+  disableRelinkLocalDirDeps: boolean
+
+  supportedArchitectures?: SupportedArchitectures
+  hoistWorkspacePackages?: boolean
+  virtualStoreDirMaxLength: number
+  peersSuffixMaxLength: number
+  prepareExecutionEnv?: PrepareExecutionEnv
+  returnListOfDepsRequiringBuild?: boolean
+  injectWorkspacePackages?: boolean
 }
 
 export type InstallOptions =
   & Partial<StrictInstallOptions>
   & Pick<StrictInstallOptions, 'storeDir' | 'storeController'>
 
-const defaults = async (opts: InstallOptions) => {
+const defaults = (opts: InstallOptions): StrictInstallOptions => {
   const packageManager = opts.packageManager ?? {
     name: pnpmPkgJson.name,
     version: pnpmPkgJson.version,
   }
   return {
     allowedDeprecatedVersions: {},
-    allowNonAppliedPatches: false,
+    allowUnusedPatches: false,
+    ignorePatchFailures: undefined,
     autoInstallPeers: true,
+    autoInstallPeersFromHighestMatch: false,
     childConcurrency: 5,
     confirmModulesPurge: !opts.force,
     depth: 0,
+    dedupeInjectedDeps: true,
     enablePnp: false,
     engineStrict: false,
     force: false,
     forceFullResolution: false,
-    forceSharedLockfile: false,
     frozenLockfile: false,
     hoistPattern: undefined,
     publicHoistPattern: undefined,
     hooks: {},
-    ignoreCurrentPrefs: false,
+    ignoreCurrentSpecifiers: false,
     ignoreDepScripts: false,
     ignoreScripts: false,
     include: {
@@ -166,13 +201,14 @@ const defaults = async (opts: InstallOptions) => {
     },
     lockfileDir: opts.lockfileDir ?? opts.dir ?? process.cwd(),
     lockfileOnly: false,
-    nodeVersion: process.version,
+    nodeVersion: opts.nodeVersion,
     nodeLinker: 'isolated',
     overrides: {},
     ownLifecycleHooksStdio: 'inherit',
     ignoreCompatibilityDb: false,
     ignorePackageManifest: false,
     packageExtensions: {},
+    ignoredOptionalDependencies: [] as string[],
     packageManager,
     preferFrozenLockfile: true,
     preferWorkspacePackages: false,
@@ -192,19 +228,18 @@ const defaults = async (opts: InstallOptions) => {
     symlink: true,
     storeController: opts.storeController,
     storeDir: opts.storeDir,
-    strictPeerDependencies: true,
+    strictPeerDependencies: false,
     tag: 'latest',
     unsafePerm: process.platform === 'win32' ||
       process.platform === 'cygwin' ||
       !process.setgid ||
-      process.getuid() !== 0,
+      process.getuid?.() !== 0,
     useLockfile: true,
     saveLockfile: true,
     useGitBranchLockfile: false,
     mergeGitBranchLockfiles: false,
     userAgent: `${packageManager.name}/${packageManager.version} npm/? node/${process.version} ${process.platform} ${process.arch}`,
     verifyStoreIntegrity: true,
-    workspacePackages: {},
     enableModulesDir: true,
     modulesCacheMaxAge: 7 * 24 * 60,
     resolveSymlinksInInjectedDirs: false,
@@ -213,17 +248,21 @@ const defaults = async (opts: InstallOptions) => {
     resolvePeersFromWorkspaceRoot: true,
     extendNodePath: true,
     ignoreWorkspaceCycles: false,
+    disallowWorkspaceCycles: false,
     excludeLinksFromLockfile: false,
+    virtualStoreDirMaxLength: 120,
+    peersSuffixMaxLength: 1000,
   } as StrictInstallOptions
 }
 
-export type ProcessedInstallOptions = StrictInstallOptions & {
+export interface ProcessedInstallOptions extends StrictInstallOptions {
   readPackageHook?: ReadPackageHook
+  parsedOverrides: VersionOverride[]
 }
 
-export async function extendOptions (
+export function extendOptions (
   opts: InstallOptions
-): Promise<ProcessedInstallOptions> {
+): ProcessedInstallOptions {
   if (opts) {
     for (const key in opts) {
       if (opts[key as keyof InstallOptions] === undefined) {
@@ -231,22 +270,26 @@ export async function extendOptions (
       }
     }
   }
+  if (opts.neverBuiltDependencies == null && opts.onlyBuiltDependencies == null && opts.onlyBuiltDependenciesFile == null) {
+    opts.onlyBuiltDependencies = []
+  }
   if (opts.onlyBuiltDependencies && opts.neverBuiltDependencies) {
     throw new PnpmError('CONFIG_CONFLICT_BUILT_DEPENDENCIES', 'Cannot have both neverBuiltDependencies and onlyBuiltDependencies')
   }
-  const defaultOpts = await defaults(opts)
+  const defaultOpts = defaults(opts)
   const extendedOpts: ProcessedInstallOptions = {
     ...defaultOpts,
     ...opts,
     storeDir: defaultOpts.storeDir,
+    parsedOverrides: parseOverrides(opts.overrides ?? {}, opts.catalogs ?? {}),
   }
   extendedOpts.readPackageHook = createReadPackageHook({
     ignoreCompatibilityDb: extendedOpts.ignoreCompatibilityDb,
     readPackageHook: extendedOpts.hooks?.readPackage,
-    overrides: extendedOpts.overrides,
+    overrides: extendedOpts.parsedOverrides,
     lockfileDir: extendedOpts.lockfileDir,
     packageExtensions: extendedOpts.packageExtensions,
-    peerDependencyRules: extendedOpts.peerDependencyRules,
+    ignoredOptionalDependencies: extendedOpts.ignoredOptionalDependencies,
   })
   if (extendedOpts.lockfileOnly) {
     extendedOpts.ignoreScripts = true

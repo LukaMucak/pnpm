@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 import { createClient, type ClientOptions } from '@pnpm/client'
 import { type Config } from '@pnpm/config'
-import { createPackageStore, type CafsLocker } from '@pnpm/package-store'
+import { createPackageStore, type CafsLocker, type StoreController } from '@pnpm/package-store'
 import { packageManager } from '@pnpm/cli-meta'
 
 type CreateResolverOptions = Pick<Config,
@@ -34,23 +34,26 @@ export type CreateNewStoreControllerOptions = CreateResolverOptions & Pick<Confi
 | 'offline'
 | 'packageImportMethod'
 | 'preferOffline'
-| 'registry'
+| 'registries'
 | 'registrySupportsTimeField'
 | 'resolutionMode'
+| 'saveWorkspaceProtocol'
 | 'strictSsl'
 | 'unsafePerm'
 | 'userAgent'
 | 'verifyStoreIntegrity'
+| 'virtualStoreDirMaxLength'
 > & {
   cafsLocker?: CafsLocker
   ignoreFile?: (filename: string) => boolean
-} & Partial<Pick<Config, 'userConfig' | 'deployAllFiles'>> & Pick<ClientOptions, 'resolveSymlinksInInjectedDirs'>
+  fetchFullMetadata?: boolean
+} & Partial<Pick<Config, 'userConfig' | 'deployAllFiles' | 'sslConfigs' | 'strictStorePkgContentCheck'>> & Pick<ClientOptions, 'resolveSymlinksInInjectedDirs'>
 
 export async function createNewStoreController (
   opts: CreateNewStoreControllerOptions
-) {
-  const fullMetadata = opts.resolutionMode === 'time-based' && !opts.registrySupportsTimeField
-  const { resolve, fetchers } = createClient({
+): Promise<{ ctrl: StoreController, dir: string }> {
+  const fullMetadata = opts.fetchFullMetadata ?? (opts.resolutionMode === 'time-based' && !opts.registrySupportsTimeField)
+  const { resolve, fetchers, clearResolutionCache } = createClient({
     customFetchers: opts.hooks?.fetchers,
     userConfig: opts.userConfig,
     unsafePerm: opts.unsafePerm,
@@ -69,6 +72,8 @@ export async function createNewStoreController (
     offline: opts.offline,
     preferOffline: opts.preferOffline,
     rawConfig: opts.rawConfig,
+    sslConfigs: opts.sslConfigs,
+    registries: opts.registries,
     retry: {
       factor: opts.fetchRetryFactor,
       maxTimeout: opts.fetchRetryMaxtimeout,
@@ -86,10 +91,11 @@ export async function createNewStoreController (
     gitShallowHosts: opts.gitShallowHosts,
     resolveSymlinksInInjectedDirs: opts.resolveSymlinksInInjectedDirs,
     includeOnlyPackageFiles: !opts.deployAllFiles,
+    saveWorkspaceProtocol: opts.saveWorkspaceProtocol,
   })
   await fs.mkdir(opts.storeDir, { recursive: true })
   return {
-    ctrl: await createPackageStore(resolve, fetchers, {
+    ctrl: createPackageStore(resolve, fetchers, {
       cafsLocker: opts.cafsLocker,
       engineStrict: opts.engineStrict,
       force: opts.force,
@@ -104,6 +110,9 @@ export async function createNewStoreController (
       verifyStoreIntegrity: typeof opts.verifyStoreIntegrity === 'boolean'
         ? opts.verifyStoreIntegrity
         : true,
+      virtualStoreDirMaxLength: opts.virtualStoreDirMaxLength,
+      strictStorePkgContentCheck: opts.strictStorePkgContentCheck,
+      clearResolutionCache,
     }),
     dir: opts.storeDir,
   }

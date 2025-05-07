@@ -8,7 +8,16 @@ import { type Dependencies, type ProjectManifest } from '@pnpm/types'
 import getVerSelType from 'version-selector-type'
 import { type ImporterToResolve } from '.'
 import { getWantedDependencies, type WantedDependency } from './getWantedDependencies'
+import { type ImporterToResolveGeneric } from './resolveDependencyTree'
 import { safeIsInnerLink } from './safeIsInnerLink'
+import { validatePeerDependencies } from './validatePeerDependencies'
+
+export interface ResolveImporter extends ImporterToResolve, ImporterToResolveGeneric<{ isNew?: boolean }> {
+  wantedDependencies: Array<WantedDependency & {
+    isNew?: boolean
+    updateDepth: number
+  }>
+}
 
 export async function toResolveImporter (
   opts: {
@@ -17,9 +26,12 @@ export async function toResolveImporter (
     preferredVersions?: PreferredVersions
     virtualStoreDir: string
     workspacePackages: WorkspacePackages
+    updateToLatest?: boolean
+    noDependencySelectors: boolean
   },
   project: ImporterToResolve
-) {
+): Promise<ResolveImporter> {
+  validatePeerDependencies(project)
   const allDeps = getWantedDependencies(project.manifest)
   const nonLinkedDependencies = await partitionLinkedPackages(allDeps, {
     lockfileOnly: opts.lockfileOnly,
@@ -31,6 +43,11 @@ export async function toResolveImporter (
   const defaultUpdateDepth = (project.update === true || (project.updateMatching != null)) ? opts.defaultUpdateDepth : -1
   const existingDeps = nonLinkedDependencies
     .filter(({ alias }) => !project.wantedDependencies.some((wantedDep) => wantedDep.alias === alias))
+  if (opts.updateToLatest && opts.noDependencySelectors) {
+    for (const dep of existingDeps) {
+      dep.updateSpec = true
+    }
+  }
   let wantedDependencies!: Array<WantedDependency & { isNew?: boolean, updateDepth: number }>
   if (!project.manifest) {
     wantedDependencies = [
@@ -48,14 +65,18 @@ export async function toResolveImporter (
       ...dep,
       updateDepth: project.updateMatching != null
         ? defaultUpdateDepth
-        : (prefIsLocalTarball(dep.pref) ? 0 : -1),
+        : (prefIsLocalTarball(dep.bareSpecifier) ? 0 : defaultUpdateDepth),
     })
     wantedDependencies = [
       ...project.wantedDependencies.map(
         defaultUpdateDepth < 0
           ? updateLocalTarballs
           : (dep) => ({ ...dep, updateDepth: defaultUpdateDepth })),
-      ...existingDeps.map(updateLocalTarballs),
+      ...existingDeps.map(
+        opts.noDependencySelectors && project.updateMatching != null
+          ? updateLocalTarballs
+          : (dep) => ({ ...dep, updateDepth: -1 })
+      ),
     ]
   }
   return {
@@ -66,8 +87,8 @@ export async function toResolveImporter (
   }
 }
 
-function prefIsLocalTarball (pref: string) {
-  return pref.startsWith('file:') && pref.endsWith('.tgz')
+function prefIsLocalTarball (bareSpecifier: string): boolean {
+  return bareSpecifier.startsWith('file:') && bareSpecifier.endsWith('.tgz')
 }
 
 async function partitionLinkedPackages (
@@ -85,8 +106,8 @@ async function partitionLinkedPackages (
   await Promise.all(dependencies.map(async (dependency) => {
     if (
       !dependency.alias ||
-      opts.workspacePackages?.[dependency.alias] != null ||
-      dependency.pref.startsWith('workspace:')
+      opts.workspacePackages?.get(dependency.alias) != null ||
+      dependency.bareSpecifier.startsWith('workspace:')
     ) {
       nonLinkedDependencies.push(dependency)
       return
@@ -100,7 +121,7 @@ async function partitionLinkedPackages (
       nonLinkedDependencies.push(dependency)
       return
     }
-    if (!dependency.pref.startsWith('link:')) {
+    if (!dependency.bareSpecifier.startsWith('link:')) {
       // This info-log might be better to be moved to the reporter
       logger.info({
         message: `${dependency.alias} is linked to ${opts.modulesDir} from ${isInnerLink}`,
@@ -121,25 +142,26 @@ function getPreferredVersionsFromPackage (
 type VersionSpecsByRealNames = Record<string, Record<string, 'version' | 'range' | 'tag'>>
 
 function getVersionSpecsByRealNames (deps: Dependencies): VersionSpecsByRealNames {
-  return Object.entries(deps)
-    .reduce((acc, [depName, currentPref]) => {
-      if (currentPref.startsWith('npm:')) {
-        const pref = currentPref.slice(4)
-        const index = pref.lastIndexOf('@')
-        const spec = pref.slice(index + 1)
-        const selector = getVerSelType(spec)
-        if (selector != null) {
-          const pkgName = pref.substring(0, index)
-          acc[pkgName] = acc[pkgName] || {}
-          acc[pkgName][selector.normalized] = selector.type
-        }
-      } else if (!currentPref.includes(':')) { // we really care only about semver specs
-        const selector = getVerSelType(currentPref)
-        if (selector != null) {
-          acc[depName] = acc[depName] || {}
-          acc[depName][selector.normalized] = selector.type
-        }
+  const acc: VersionSpecsByRealNames = {}
+  for (const depName in deps) {
+    const currentBareSpecifier = deps[depName]
+    if (currentBareSpecifier.startsWith('npm:')) {
+      const bareSpecifier = currentBareSpecifier.slice(4)
+      const index = bareSpecifier.lastIndexOf('@')
+      const spec = bareSpecifier.slice(index + 1)
+      const selector = getVerSelType(spec)
+      if (selector != null) {
+        const pkgName = bareSpecifier.substring(0, index)
+        acc[pkgName] = acc[pkgName] || {}
+        acc[pkgName][selector.normalized] = selector.type
       }
-      return acc
-    }, {} as VersionSpecsByRealNames)
+    } else if (!currentBareSpecifier.includes(':')) { // we really care only about semver specs
+      const selector = getVerSelType(currentBareSpecifier)
+      if (selector != null) {
+        acc[depName] = acc[depName] || {}
+        acc[depName][selector.normalized] = selector.type
+      }
+    }
+  }
+  return acc
 }

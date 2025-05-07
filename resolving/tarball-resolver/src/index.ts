@@ -1,19 +1,24 @@
-import { type ResolveResult } from '@pnpm/resolver-base'
+import { type PkgResolutionId, type ResolveResult } from '@pnpm/resolver-base'
+import { type FetchFromRegistry } from '@pnpm/fetching-types'
 
 export async function resolveFromTarball (
-  wantedDependency: { pref: string }
+  fetchFromRegistry: FetchFromRegistry,
+  wantedDependency: { bareSpecifier: string }
 ): Promise<ResolveResult | null> {
-  if (!wantedDependency.pref.startsWith('http:') && !wantedDependency.pref.startsWith('https:')) {
+  if (!wantedDependency.bareSpecifier.startsWith('http:') && !wantedDependency.bareSpecifier.startsWith('https:')) {
     return null
   }
 
-  if (isRepository(wantedDependency.pref)) return null
+  if (isRepository(wantedDependency.bareSpecifier)) return null
+
+  // If there are redirects, we want to get the final URL address
+  const { url: resolvedUrl } = await fetchFromRegistry(wantedDependency.bareSpecifier, { method: 'HEAD' })
 
   return {
-    id: `@${wantedDependency.pref.replace(/^.*:\/\/(git@)?/, '').replace(':', '+')}`,
-    normalizedPref: wantedDependency.pref,
+    id: resolvedUrl as PkgResolutionId,
+    normalizedBareSpecifier: resolvedUrl,
     resolution: {
-      tarball: wantedDependency.pref,
+      tarball: resolvedUrl,
     },
     resolvedVia: 'url',
   }
@@ -25,10 +30,15 @@ const GIT_HOSTERS = new Set([
   'bitbucket.org',
 ])
 
-function isRepository (pref: string) {
-  if (pref.endsWith('/')) {
-    pref = pref.slice(0, -1)
+function isRepository (bareSpecifier: string): boolean {
+  const url = new URL(bareSpecifier)
+  if (url.hash && url.hash.includes('/')) {
+    url.hash = encodeURIComponent(url.hash.substring(1))
+    bareSpecifier = url.href
   }
-  const parts = pref.split('/')
+  if (bareSpecifier.endsWith('/')) {
+    bareSpecifier = bareSpecifier.slice(0, -1)
+  }
+  const parts = bareSpecifier.split('/')
   return (parts.length === 5 && GIT_HOSTERS.has(parts[2]))
 }

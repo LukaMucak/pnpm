@@ -23,7 +23,9 @@
     },
     {
       "path": "../../packages/types"
+    },
+    {
+      "path": "../../semver/peer-range"
     }
-  ],
-  "composite": true
+  ]
 }

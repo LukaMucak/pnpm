@@ -1,5 +1,196 @@
 # @pnpm/fetch
 
+## 1000.2.1
+
+### Patch Changes
+
+- Updated dependencies [8a9f3a4]
+- Updated dependencies [5b73df1]
+  - @pnpm/core-loggers@1001.0.0
+  - @pnpm/logger@1001.0.0
+  - @pnpm/types@1000.5.0
+
+## 1000.2.0
+
+### Minor Changes
+
+- 750ae7d: Export `CreateFetchFromRegistryOptions` type.
+
+### Patch Changes
+
+- Updated dependencies [750ae7d]
+- Updated dependencies [750ae7d]
+  - @pnpm/types@1000.4.0
+  - @pnpm/core-loggers@1000.2.0
+
+## 1000.1.6
+
+### Patch Changes
+
+- Updated dependencies [5f7be64]
+- Updated dependencies [5f7be64]
+  - @pnpm/types@1000.3.0
+  - @pnpm/core-loggers@1000.1.5
+
+## 1000.1.5
+
+### Patch Changes
+
+- Updated dependencies [a5e4965]
+  - @pnpm/types@1000.2.1
+  - @pnpm/core-loggers@1000.1.4
+
+## 1000.1.4
+
+### Patch Changes
+
+- Updated dependencies [8fcc221]
+  - @pnpm/types@1000.2.0
+  - @pnpm/core-loggers@1000.1.3
+
+## 1000.1.3
+
+### Patch Changes
+
+- Updated dependencies [b562deb]
+  - @pnpm/types@1000.1.1
+  - @pnpm/core-loggers@1000.1.2
+
+## 1000.1.2
+
+### Patch Changes
+
+- Updated dependencies [9591a18]
+  - @pnpm/types@1000.1.0
+  - @pnpm/core-loggers@1000.1.1
+
+## 1000.1.1
+
+### Patch Changes
+
+- Updated dependencies [516c4b3]
+  - @pnpm/core-loggers@1000.1.0
+
+## 1000.1.0
+
+### Minor Changes
+
+- b0f3c71: The `fetch` function accepts a `method` option now.
+
+### Patch Changes
+
+- Updated dependencies [b0f3c71]
+  - @pnpm/fetching-types@1000.1.0
+
+## 8.0.7
+
+### Patch Changes
+
+- Updated dependencies [d500d9f]
+  - @pnpm/types@12.2.0
+  - @pnpm/core-loggers@10.0.7
+
+## 8.0.6
+
+### Patch Changes
+
+- Updated dependencies [7ee59a1]
+  - @pnpm/types@12.1.0
+  - @pnpm/core-loggers@10.0.6
+
+## 8.0.5
+
+### Patch Changes
+
+- Updated dependencies [cb006df]
+  - @pnpm/types@12.0.0
+  - @pnpm/core-loggers@10.0.5
+
+## 8.0.4
+
+### Patch Changes
+
+- Updated dependencies [0ef168b]
+  - @pnpm/types@11.1.0
+  - @pnpm/core-loggers@10.0.4
+
+## 8.0.3
+
+### Patch Changes
+
+- Updated dependencies [dd00eeb]
+- Updated dependencies
+  - @pnpm/types@11.0.0
+  - @pnpm/core-loggers@10.0.3
+
+## 8.0.2
+
+### Patch Changes
+
+- Updated dependencies [13e55b2]
+  - @pnpm/types@10.1.1
+  - @pnpm/core-loggers@10.0.2
+
+## 8.0.1
+
+### Patch Changes
+
+- Updated dependencies [45f4262]
+  - @pnpm/types@10.1.0
+  - @pnpm/core-loggers@10.0.1
+
+## 8.0.0
+
+### Major Changes
+
+- 43cdd87: Node.js v16 support dropped. Use at least Node.js v18.12.
+
+### Minor Changes
+
+- 7733f3a: Added support for registry-scoped SSL configurations (cert, key, and ca). Three new settings supported: `<registryURL>:certfile`, `<registryURL>:keyfile`, and `<registryURL>:ca`. For instance:
+
+  ```
+  //registry.mycomp.com/:certfile=server-cert.pem
+  //registry.mycomp.com/:keyfile=server-key.pem
+  //registry.mycomp.com/:cafile=client-cert.pem
+  ```
+
+  Related issue: [#7427](https://github.com/pnpm/pnpm/issues/7427).
+  Related PR: [#7626](https://github.com/pnpm/pnpm/pull/7626).
+
+### Patch Changes
+
+- Updated dependencies [7733f3a]
+- Updated dependencies [43cdd87]
+- Updated dependencies [730929e]
+  - @pnpm/types@10.0.0
+  - @pnpm/fetching-types@6.0.0
+  - @pnpm/core-loggers@10.0.0
+
+## 7.0.7
+
+### Patch Changes
+
+- @pnpm/core-loggers@9.0.6
+
+## 7.0.6
+
+### Patch Changes
+
+- @pnpm/core-loggers@9.0.5
+
+## 7.0.5
+
+### Patch Changes
+
+- @pnpm/core-loggers@9.0.4
+
+## 7.0.4
+
+### Patch Changes
+
+- @pnpm/core-loggers@9.0.3
+
 ## 7.0.3
 
 ### Patch Changes
